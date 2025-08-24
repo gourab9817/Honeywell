@@ -139,10 +139,10 @@
         <div class="container">
             <div class="export-panel">
                 <div class="export-header">
-                    <h2>Export Reports</h2>
+            <h2>Export Reports</h2>
                     <p>Download comprehensive reports in various formats</p>
                 </div>
-                <div class="export-options">
+            <div class="export-options">
                     <div class="export-option">
                         <div class="export-icon">
                             <i class="fas fa-file-excel"></i>
@@ -154,7 +154,7 @@
                         <button class="btn btn-primary" onclick="exportExcel()">
                             <i class="fas fa-download"></i>
                             Export Excel
-                        </button>
+                </button>
                     </div>
                     <div class="export-option">
                         <div class="export-icon">
@@ -167,7 +167,7 @@
                         <button class="btn btn-primary" onclick="exportPDF()">
                             <i class="fas fa-download"></i>
                             Export PDF
-                        </button>
+                </button>
                     </div>
                     <div class="export-option">
                         <div class="export-icon">
@@ -180,7 +180,7 @@
                         <button class="btn btn-primary" onclick="exportJSON()">
                             <i class="fas fa-download"></i>
                             Export JSON
-                        </button>
+                </button>
                     </div>
                 </div>
             </div>
@@ -248,16 +248,16 @@
                 }
 
                 // Load batch summary
-                const batchResponse = await axios.get('/api/batch-summary');
-                const batchData = batchResponse.data;
-                
+                    const batchResponse = await axios.get('/api/batch-summary');
+                    const batchData = batchResponse.data;
+                    
                 if (batchData.success) {
                     document.getElementById('batch-count').textContent = batchData.total_batches;
                     document.getElementById('pass-rate').textContent = `${batchData.pass_rate}%`;
                 }
 
                 // Load alerts
-                const alertsResponse = await axios.get('/api/alerts');
+                    const alertsResponse = await axios.get('/api/alerts');
                 const alertsData = alertsResponse.data;
                 
                 if (alertsData.success) {
@@ -268,7 +268,7 @@
                 }
 
                 hideLoading();
-                
+
             } catch (error) {
                 hideLoading();
                 console.error('Error loading report metrics:', error);
@@ -282,7 +282,7 @@
             try {
                 const response = await axios.get('/api/reports/quality');
                 const data = response.data;
-                
+
                 if (data.success) {
                     const content = `
                         <div class="report-detail">
@@ -300,10 +300,10 @@
                                     <span class="metric-label">Outliers Detected:</span>
                                     <span class="metric-value">${data.outlier_report.total_outliers || 0}</span>
                                 </div>
-                            </div>
-                        </div>
-                    `;
-                    
+                    </div>
+                    </div>
+                `;
+
                     showReportModal('Data Quality Report', content);
                 }
             } catch (error) {
@@ -318,7 +318,7 @@
             try {
                 const response = await axios.get('/api/reports/training');
                 const data = response.data;
-                
+
                 if (data.success) {
                     const results = data.training_status.results;
                     const content = `
@@ -338,9 +338,9 @@
                                     <span class="metric-value">${data.training_status.completed ? 'Completed' : 'Not Completed'}</span>
                                 </div>
                             </div>
-                        </div>
-                    `;
-                    
+                    </div>
+                `;
+
                     showReportModal('Model Performance Report', content);
                 }
             } catch (error) {
@@ -355,7 +355,7 @@
             try {
                 const response = await axios.get('/api/batch-summary');
                 const data = response.data;
-                
+
                 if (data.success) {
                     const content = `
                         <div class="report-detail">
@@ -373,10 +373,10 @@
                                     <span class="metric-label">Average Quality:</span>
                                     <span class="metric-value">${calculateAverageQuality(data.batches)}%</span>
                                 </div>
-                            </div>
-                        </div>
-                    `;
-                    
+                    </div>
+                    </div>
+                `;
+
                     showReportModal('Process Analytics Report', content);
                 }
             } catch (error) {
@@ -391,7 +391,7 @@
             try {
                 const response = await axios.get('/api/alerts');
                 const data = response.data;
-                
+
                 if (data.success) {
                     const content = `
                         <div class="report-detail">
@@ -400,11 +400,11 @@
                                 <div class="metric-row">
                                     <span class="metric-label">Total Alerts:</span>
                                     <span class="metric-value">${data.total_alerts}</span>
-                                </div>
+                    </div>
                                 <div class="metric-row">
                                     <span class="metric-label">Risk Level:</span>
                                     <span class="metric-value">${data.total_alerts > 10 ? 'High' : data.total_alerts > 5 ? 'Medium' : 'Low'}</span>
-                                </div>
+                            </div>
                             </div>
                         </div>
                     `;
