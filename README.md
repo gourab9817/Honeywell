@@ -32,7 +32,7 @@ The system implements a revolutionary dual-module architecture that addresses di
 - **Workflow**: Upload → Instant Predict (<1 second)
 - **Best For**: Real-time monitoring, rapid decision making
 - **Models**: Pre-trained ensemble of 7+ ML algorithms
-
+![Architecture Diagram](Appflow_fnb.png)
 ---
 
 ## 📊 Technical Specifications
