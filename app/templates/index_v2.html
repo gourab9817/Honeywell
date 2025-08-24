@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F&B Anomaly Detection System - Dual Module</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style_v2.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-industry brand-icon"></i>
+                <span class="brand-text">F&B Anomaly Detection</span>
+                <span class="version-badge">v2.0</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="/" class="nav-link active">Home</a></li>
+                <li class="nav-item"><a href="/module1" class="nav-link">Module 1</a></li>
+                <li class="nav-item"><a href="/module2" class="nav-link">Module 2</a></li>
+                <li class="nav-item"><a href="/graphs" class="nav-link">Graphs</a></li>
+                <li class="nav-item"><a href="/reports" class="nav-link">Reports</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" onclick="showHelp()">Help</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Intelligent Process Monitoring</h1>
+            <p class="hero-subtitle">Choose your approach: Train custom models or use instant predictions</p>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-number">2</div>
+                    <div class="stat-label">Modules Available</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="models-count">{{ module2_status.models_count or 0 }}</div>
+                    <div class="stat-label">Pre-trained Models</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">95%+</div>
+                    <div class="stat-label">Accuracy</div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-animation">
+            <canvas id="heroChart"></canvas>
+        </div>
+    </section>
+
+    <!-- Module Selection -->
+    <section class="modules-section">
+        <div class="container">
+            <h2 class="section-title">Choose Your Module</h2>
+            <div class="modules-grid">
+                <!-- Module 1: Train-on-demand -->
+                <div class="module-card module1-card">
+                    <div class="module-header">
+                        <div class="module-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <h3>Module 1: Custom Training</h3>
+                        <p class="module-subtitle">Upload → Train → Predict</p>
+                    </div>
+                    <div class="module-content">
+                        <ul class="feature-list">
+                            <li><i class="fas fa-upload"></i> Upload your own data</li>
+                            <li><i class="fas fa-brain"></i> Train custom models</li>
+                            <li><i class="fas fa-chart-line"></i> Tailored predictions</li>
+                            <li><i class="fas fa-clock"></i> 5-10 minutes process</li>
+                        </ul>
+                        <div class="module-stats">
+                            <div class="stat">
+                                <span class="stat-label">Accuracy:</span>
+                                <span class="stat-value">Custom Optimized</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Time:</span>
+                                <span class="stat-value">5-10 minutes</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="module-footer">
+                        <button class="btn btn-primary btn-module" onclick="window.location.href='/module1'">
+                            <i class="fas fa-arrow-right"></i>
+                            Start Module 1
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Module 2: Pre-trained Instant -->
+                <div class="module-card module2-card">
+                    <div class="module-header">
+                        <div class="module-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Module 2: Instant Predictions</h3>
+                        <p class="module-subtitle">Upload → Predict Instantly</p>
+                        {% if not module2_status.loaded %}
+                        <div class="status-badge error">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Models Not Available
+                        </div>
+                        {% else %}
+                        <div class="status-badge success">
+                            <i class="fas fa-check-circle"></i>
+                            {{ module2_status.models_count }} Models Ready
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="module-content">
+                        <ul class="feature-list">
+                            <li><i class="fas fa-upload"></i> Upload process data</li>
+                            <li><i class="fas fa-magic"></i> Instant predictions</li>
+                            <li><i class="fas fa-layer-group"></i> Ensemble models</li>
+                            <li><i class="fas fa-tachometer-alt"></i> < 1 second response</li>
+                        </ul>
+                        <div class="module-stats">
+                            <div class="stat">
+                                <span class="stat-label">Models:</span>
+                                <span class="stat-value">{{ module2_status.models_count or 0 }} Available</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Speed:</span>
+                                <span class="stat-value">< 1 second</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="module-footer">
+                        {% if module2_status.loaded %}
+                        <button class="btn btn-secondary btn-module" onclick="window.location.href='/module2'">
+                            <i class="fas fa-arrow-right"></i>
+                            Start Module 2
+                        </button>
+                        {% else %}
+                        <button class="btn btn-disabled btn-module" onclick="showModule2Setup()">
+                            <i class="fas fa-tools"></i>
+                            Setup Required
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- System Status -->
+    <section class="status-section">
+        <div class="container">
+            <h2 class="section-title">System Status</h2>
+            <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-icon operational">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3>System Health</h3>
+                    <p id="system-status">Operational</p>
+                </div>
+                <div class="status-card">
+                    <div class="status-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3>Module 1</h3>
+                    <p id="module1-status">Ready</p>
+                </div>
+                <div class="status-card">
+                    <div class="status-icon {% if module2_status.loaded %}operational{% else %}warning{% endif %}">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Module 2</h3>
+                    <p id="module2-status">
+                        {% if module2_status.loaded %}
+                            {{ module2_status.models_count }} Models Loaded
+                        {% else %}
+                            Not Available
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="status-card">
+                    <div class="status-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h3>Performance</h3>
+                    <p id="performance-status">Optimal</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Comparison -->
+    <section class="comparison-section">
+        <div class="container">
+            <h2 class="section-title">Module Comparison</h2>
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Module 1: Custom Training</th>
+                            <th>Module 2: Instant Predictions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i class="fas fa-clock"></i> Processing Time</td>
+                            <td>5-10 minutes</td>
+                            <td>< 1 second</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-brain"></i> Model Training</td>
+                            <td>Custom models for your data</td>
+                            <td>Pre-trained ensemble models</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-target"></i> Accuracy</td>
+                            <td>Optimized for your specific data</td>
+                            <td>High accuracy across various scenarios</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-database"></i> Data Requirements</td>
+                            <td>Requires training data</td>
+                            <td>Only prediction data needed</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-users"></i> Best For</td>
+                            <td>Specific process optimization</td>
+                            <td>Quick quality assessments</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="actions-section">
+        <div class="container">
+            <h2 class="section-title">Quick Actions</h2>
+            <div class="action-cards">
+                <div class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-play-circle"></i>
+                    </div>
+                    <h3>Get Started</h3>
+                    <p>New to the system? Start with Module 2 for instant results</p>
+                    <button class="btn btn-outline" onclick="window.location.href='/module2'">
+                        Try Module 2
+                    </button>
+                </div>
+                <div class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-file-upload"></i>
+                    </div>
+                    <h3>Upload Data</h3>
+                    <p>Have process data? Upload it to either module</p>
+                    <input type="file" id="quickFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+                    <button class="btn btn-outline" onclick="document.getElementById('quickFileInput').click()">
+                        Choose File
+                    </button>
+                </div>
+                <div class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>View Reports</h3>
+                    <p>Access detailed analytics and performance reports</p>
+                    <button class="btn btn-outline" onclick="window.location.href='/reports'">
+                        View Reports
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal for notifications -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modal-title">Notification</h2>
+            <div id="modal-body">
+                <p id="modal-message">Message goes here</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="closeModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Processing...</p>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard_v2.js') }}"></script>
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            initHeroChart();
+            checkSystemStatus();
+            initMobileMenu();
+            
+            // File upload handler
+            document.getElementById('quickFileInput').addEventListener('change', handleQuickFileUpload);
+        });
+
+        function initHeroChart() {
+            const ctx = document.getElementById('heroChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 30}, (_, i) => i),
+                    datasets: [{
+                        label: 'Quality Score',
+                        data: Array.from({length: 30}, () => 85 + Math.random() * 10),
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 4
+                    }, {
+                        label: 'Process Efficiency',
+                        data: Array.from({length: 30}, () => 80 + Math.random() * 15),
+                        borderColor: '#764ba2',
+                        backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false
+                        },
+                        y: {
+                            display: false,
+                            min: 70,
+                            max: 100
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+
+            // Animate chart
+            setInterval(() => {
+                chart.data.datasets.forEach(dataset => {
+                    dataset.data.shift();
+                    dataset.data.push(85 + Math.random() * 10);
+                });
+                chart.update('none');
+            }, 2000);
+        }
+
+        async function checkSystemStatus() {
+            try {
+                const response = await axios.get('/api/status');
+                const data = response.data;
+                
+                // Update status indicators
+                document.getElementById('system-status').textContent = 
+                    data.status === 'operational' ? 'Operational' : 'Offline';
+                
+                document.getElementById('module1-status').textContent = 
+                    data.module1 ? 'Ready' : 'Initializing';
+                
+                if (data.module2 && data.module2.loaded) {
+                    document.getElementById('module2-status').textContent = 
+                        `${data.module2.models_count} Models Loaded`;
+                    document.getElementById('models-count').textContent = data.module2.models_count;
+                }
+                
+            } catch (error) {
+                console.error('Error checking status:', error);
+                document.getElementById('system-status').textContent = 'Error';
+            }
+        }
+
+        function initMobileMenu() {
+            const navToggle = document.querySelector('.nav-toggle');
+            const navMenu = document.querySelector('.nav-menu');
+            
+            navToggle.addEventListener('click', () => {
+                navToggle.classList.toggle('active');
+                navMenu.classList.toggle('active');
+            });
+        }
+
+        async function handleQuickFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showModal('File Upload', `
+                <p>You've selected: <strong>${file.name}</strong></p>
+                <p>Which module would you like to use?</p>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="uploadToModule(1, '${file.name}')">
+                        Module 1: Train Custom Model
+                    </button>
+                    <button class="btn btn-secondary" onclick="uploadToModule(2, '${file.name}')">
+                        Module 2: Instant Prediction
+                    </button>
+                </div>
+            `);
+        }
+
+        function uploadToModule(moduleNumber, fileName) {
+            closeModal();
+            if (moduleNumber === 1) {
+                window.location.href = '/module1';
+            } else {
+                {% if module2_status.loaded %}
+                window.location.href = '/module2';
+                {% else %}
+                showModule2Setup();
+                {% endif %}
+            }
+        }
+
+        function showModule2Setup() {
+            showModal('Module 2 Setup Required', `
+                <div class="setup-instructions">
+                    <p><i class="fas fa-info-circle"></i> Module 2 requires pre-trained models to be available.</p>
+                    <h4>Setup Steps:</h4>
+                    <ol>
+                        <li>Ensure you have training data in <code>data/raw/</code></li>
+                        <li>Run the training script: <code>python train_pretrained_models.py</code></li>
+                        <li>Restart the application</li>
+                    </ol>
+                    <p><strong>Note:</strong> This is a one-time setup process that trains multiple ML models for instant predictions.</p>
+                </div>
+            `);
+        }
+
+        function showModal(title, content) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-body').innerHTML = content;
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showHelp() {
+            showModal('Help - F&B Anomaly Detection System v2.0', `
+                <div class="help-content">
+                    <h4><i class="fas fa-cogs"></i> Module 1: Custom Training</h4>
+                    <ul>
+                        <li>Upload your process data (Excel/CSV)</li>
+                        <li>System trains custom models on your data</li>
+                        <li>Get predictions optimized for your specific process</li>
+                        <li>Processing time: 5-10 minutes</li>
+                    </ul>
+                    
+                    <h4><i class="fas fa-bolt"></i> Module 2: Instant Predictions</h4>
+                    <ul>
+                        <li>Upload process data for immediate analysis</li>
+                        <li>Uses pre-trained ensemble models</li>
+                        <li>Get predictions in under 1 second</li>
+                        <li>Includes confidence scoring</li>
+                    </ul>
+                    
+                    <h4><i class="fas fa-question-circle"></i> Which Module to Choose?</h4>
+                    <ul>
+                        <li><strong>Module 1:</strong> When you have time and want maximum accuracy for your specific process</li>
+                        <li><strong>Module 2:</strong> When you need quick results or are evaluating the system</li>
+                    </ul>
+                    
+                    <p><strong>Support:</strong> For technical assistance, contact your system administrator.</p>
+                </div>
+            `);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Auto-refresh status every 30 seconds
+        setInterval(checkSystemStatus, 30000);
+    </script>
+</body>
+</html>

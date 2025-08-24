@@ -1,0 +1,159 @@
+{
+  "timestamp": "2025-08-24T01:31:03.568244",
+  "models_trained": {
+    "linear_regression": {
+      "model": "MultiOutputRegressor(estimator=LinearRegression())",
+      "scaler": "StandardScaler()",
+      "test_metrics": {
+        "Final_Weight": {
+          "mse": 0.5875201489781136,
+          "rmse": 0.7664986294691685,
+          "mae": 0.6120909048277483,
+          "r2": 0.4283692308724577,
+          "mape": 7.962258470075935
+        },
+        "Quality_Score": {
+          "mse": 57.047292093851034,
+          "rmse": 7.5529657813239846,
+          "mae": 6.939432476976,
+          "r2": -0.4702936567330003,
+          "mape": 9.644657120337492
+        },
+        "overall": {
+          "avg_r2": -0.020962212930271285,
+          "avg_rmse": 4.159732205396576,
+          "avg_mae": 3.775761690901874
+        }
+      }
+    },
+    "ridge_regression": {
+      "model": "MultiOutputRegressor(estimator=Ridge(alpha=100.0, random_state=42))",
+      "scaler": "StandardScaler()",
+      "best_params": {
+        "estimator__alpha": 100.0
+      },
+      "best_score": -3.0328044338387907,
+      "test_metrics": {
+        "Final_Weight": {
+          "mse": 0.46257274758106154,
+          "rmse": 0.680127008419061,
+          "mae": 0.6179915234666182,
+          "r2": 0.5499374516140161,
+          "mape": 5.311465990714185
+        },
+        "Quality_Score": {
+          "mse": 52.14804037445954,
+          "rmse": 7.221360008645154,
+          "mae": 6.428302743324369,
+          "r2": -0.34402405722406937,
+          "mape": 8.775348975701354
+        },
+        "overall": {
+          "avg_r2": 0.10295669719497336,
+          "avg_rmse": 3.950743508532107,
+          "avg_mae": 3.5231471333954936
+        }
+      }
+    },
+    "random_forest": {
+      "model": "MultiOutputRegressor(estimator=RandomForestRegressor(n_jobs=-1,\n                                                     random_state=42))",
+      "best_params": {
+        "estimator__max_depth": null,
+        "estimator__min_samples_split": 2,
+        "estimator__n_estimators": 100
+      },
+      "best_score": -0.44411340417660283,
+      "test_metrics": {
+        "Final_Weight": {
+          "mse": 1.3295792913030724,
+          "rmse": 1.153073844687786,
+          "mae": 0.9091511761942144,
+          "r2": -0.2936210515087212,
+          "mape": 1.6622337238089022
+        },
+        "Quality_Score": {
+          "mse": 55.39685604321394,
+          "rmse": 7.442906424456372,
+          "mae": 6.2162646728384034,
+          "r2": -0.4277565692214136,
+          "mape": 7.639085612140573
+        },
+        "overall": {
+          "avg_r2": -0.3606888103650674,
+          "avg_rmse": 4.297990134572079,
+          "avg_mae": 3.562707924516309
+        }
+      }
+    },
+    "xgboost": {
+      "model": "MultiOutputRegressor(estimator=XGBRegressor(base_score=None, booster=None,\n                                            callbacks=None,\n                                            colsample_bylevel=None,\n                                            colsample_bynode=None,\n                                            colsample_bytree=None,\n                                            early_stopping_rounds=None,\n                                            enable_categorical=False,\n                                            eval_metric=None,\n                                            feature_types=None, gamma=None,\n                                            gpu_id=None, grow_policy=None,\n                                            importance_type=None,\n                                            interaction_constraints=None,\n                                            learning_rate=0.1, max_bin=None,\n                                            max_cat_threshold=None,\n                                            max_cat_to_onehot=None,\n                                            max_delta_step=None, max_depth=3,\n                                            max_leaves=None,\n                                            min_child_weight=None, missing=nan,\n                                            monotone_constraints=None,\n                                            n_estimators=50, n_jobs=-1,\n                                            num_parallel_tree=None,\n                                            predictor=None, random_state=42, ...))",
+      "best_params": {
+        "estimator__learning_rate": 0.1,
+        "estimator__max_depth": 3,
+        "estimator__n_estimators": 50
+      },
+      "best_score": -0.896661866899041,
+      "test_metrics": {
+        "Final_Weight": {
+          "mse": 1.1438859034061326,
+          "rmse": 1.0695260181062136,
+          "mae": 0.8938937541666874,
+          "r2": -0.11294970886617128,
+          "mape": 2.3038257570802605
+        },
+        "Quality_Score": {
+          "mse": 48.64939563038319,
+          "rmse": 6.974911872589014,
+          "mae": 5.458494799491985,
+          "r2": -0.25385264004417896,
+          "mape": 5.671801751714859
+        },
+        "overall": {
+          "avg_r2": -0.18340117445517512,
+          "avg_rmse": 4.022218945347614,
+          "avg_mae": 3.176194276829336
+        }
+      }
+    },
+    "neural_network": {
+      "model": "MLPRegressor(hidden_layer_sizes=(100, 50), max_iter=500, random_state=42)",
+      "scaler": "StandardScaler()",
+      "test_metrics": {
+        "Final_Weight": {
+          "mse": 348.98010121084025,
+          "rmse": 18.681009105796193,
+          "mae": 15.840957631026322,
+          "r2": -338.54199530404793,
+          "mape": 61.13564422589858
+        },
+        "Quality_Score": {
+          "mse": 1254.8442058548162,
+          "rmse": 35.42378023100889,
+          "mae": 28.564987773605377,
+          "r2": -31.34140321719778,
+          "mape": 88.85774954050073
+        },
+        "overall": {
+          "avg_r2": -184.94169926062284,
+          "avg_rmse": 27.052394668402542,
+          "avg_mae": 22.20297270231585
+        }
+      }
+    }
+  },
+  "best_model": "ridge_regression",
+  "feature_importance": {},
+  "cross_validation": {},
+  "business_impact": {
+    "weight_accuracy": 0.9468853400928582,
+    "quality_accuracy": 0.9122465102429864,
+    "combined_accuracy": 0.9295659251679222,
+    "waste_reduction_potential": 7500.0,
+    "quality_improvement_potential": 2000.0,
+    "total_annual_savings": 9500.0,
+    "implementation_cost": 50000.0,
+    "roi_percentage": -81.0,
+    "payback_months": 63.15789473684211,
+    "model_performance_score": 0.10295669719497336
+  }
+}

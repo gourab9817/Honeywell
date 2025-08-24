@@ -1,0 +1,158 @@
+{
+  "timestamp": "2025-08-24T12:13:32.037564",
+  "models_trained": {
+    "linear_regression": {
+      "test_metrics": {
+        "Final_Weight": {
+          "mse": 2.6763962788017546,
+          "rmse": 1.6359695225772866,
+          "mae": 1.4383470832189018,
+          "r2": -0.01590139123028833,
+          "mape": 11.864400988195467
+        },
+        "Quality_Score": {
+          "mse": 16.509896186337897,
+          "rmse": 4.063237156054012,
+          "mae": 3.36729802820293,
+          "r2": -3.6693523916335433,
+          "mape": 6.796299256829316
+        },
+        "overall": {
+          "avg_r2": -1.842626891431916,
+          "avg_rmse": 2.8496033393156495,
+          "avg_mae": 2.402822555710916
+        }
+      },
+      "model_type": "LinearRegression"
+    },
+    "ridge_regression": {
+      "best_params": {
+        "estimator__alpha": 100.0
+      },
+      "best_score": -0.6241263008667579,
+      "test_metrics": {
+        "Final_Weight": {
+          "mse": 1.9200062808727076,
+          "rmse": 1.3856429124679661,
+          "mae": 1.1542411367758916,
+          "r2": 0.27120768050733224,
+          "mape": 9.492378649659168
+        },
+        "Quality_Score": {
+          "mse": 4.393039430441084,
+          "rmse": 2.0959578789758835,
+          "mae": 1.8315809592371353,
+          "r2": -0.2424456786133491,
+          "mape": 3.770010242250099
+        },
+        "overall": {
+          "avg_r2": 0.014381000946991573,
+          "avg_rmse": 1.7408003957219247,
+          "avg_mae": 1.4929110480065133
+        }
+      },
+      "model_type": "RidgeRegression"
+    },
+    "random_forest": {
+      "best_params": {
+        "estimator__max_depth": 10,
+        "estimator__min_samples_split": 5,
+        "estimator__n_estimators": 100
+      },
+      "best_score": -0.1523002098406338,
+      "test_metrics": {
+        "Final_Weight": {
+          "mse": 2.1862649236259535,
+          "rmse": 1.4786023548019778,
+          "mae": 1.1854440793650824,
+          "r2": 0.17014173308297975,
+          "mape": 8.692179478403702
+        },
+        "Quality_Score": {
+          "mse": 5.566389649948981,
+          "rmse": 2.359319743050734,
+          "mae": 2.0719922301587332,
+          "r2": -0.5742942615388245,
+          "mape": 4.278362059060056
+        },
+        "overall": {
+          "avg_r2": -0.20207626422792235,
+          "avg_rmse": 1.9189610489263558,
+          "avg_mae": 1.6287181547619078
+        }
+      },
+      "model_type": "RandomForest"
+    },
+    "xgboost": {
+      "best_params": {
+        "estimator__learning_rate": 0.1,
+        "estimator__max_depth": 6,
+        "estimator__n_estimators": 100
+      },
+      "best_score": -0.5425859254326747,
+      "test_metrics": {
+        "Final_Weight": {
+          "mse": 3.0529509113213327,
+          "rmse": 1.7472695588607192,
+          "mae": 1.6151712341308582,
+          "r2": -0.15883327993479535,
+          "mape": 6.022445905362806
+        },
+        "Quality_Score": {
+          "mse": 6.860961687936722,
+          "rmse": 2.61934375138826,
+          "mae": 2.3701696166992177,
+          "r2": -0.9404269720959093,
+          "mape": 5.902361549290657
+        },
+        "overall": {
+          "avg_r2": -0.5496301260153523,
+          "avg_rmse": 2.1833066551244897,
+          "avg_mae": 1.9926704254150378
+        }
+      },
+      "model_type": "XGBoost"
+    },
+    "neural_network": {
+      "test_metrics": {
+        "Final_Weight": {
+          "mse": 259.0535113682533,
+          "rmse": 16.09513937088627,
+          "mae": 15.016536454331236,
+          "r2": -97.33103740523977,
+          "mape": 45.65018462072178
+        },
+        "Quality_Score": {
+          "mse": 1200.9451088630549,
+          "rmse": 34.65465493787313,
+          "mae": 32.34915089391895,
+          "r2": -338.65300889842575,
+          "mape": 23.515674422245226
+        },
+        "overall": {
+          "avg_r2": -217.99202315183277,
+          "avg_rmse": 25.374897154379703,
+          "avg_mae": 23.682843674125095
+        }
+      },
+      "model_type": "NeuralNetwork"
+    }
+  },
+  "best_model": "ridge_regression",
+  "feature_importance": {},
+  "cross_validation": {},
+  "business_impact": {
+    "weight_accuracy": 0.9050762135034083,
+    "quality_accuracy": 0.962299897577499,
+    "combined_accuracy": 0.9336880555404536,
+    "waste_reduction_potential": 7500.0,
+    "quality_improvement_potential": 2000.0,
+    "total_annual_savings": 9500.0,
+    "implementation_cost": 50000.0,
+    "roi_percentage": -81.0,
+    "payback_months": 63.15789473684211,
+    "model_performance_score": 0.014381000946991573
+  },
+  "best_score": 0.014381000946991573,
+  "model_count": 5
+}

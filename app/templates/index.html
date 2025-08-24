@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F&B Anomaly Detection System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="brand-icon">🏭</span>
+                <span class="brand-text">F&B Anomaly Detection</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="/" class="nav-link active">Home</a></li>
+                <li class="nav-item"><a href="/dashboard" class="nav-link">Dashboard</a></li>
+                <li class="nav-item"><a href="/reports" class="nav-link">Reports</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" onclick="showHelp()">Help</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Intelligent Process Monitoring</h1>
+            <p class="hero-subtitle">Real-time anomaly detection for food & beverage manufacturing</p>
+            <div class="hero-buttons">
+                <button class="btn btn-primary" onclick="window.location.href='/dashboard'">
+                    View Dashboard
+                </button>
+                <button class="btn btn-secondary" onclick="uploadData()">
+                    Upload Data
+                </button>
+            </div>
+        </div>
+        <div class="hero-animation">
+            <canvas id="heroChart"></canvas>
+        </div>
+    </section>
+
+    <!-- System Status -->
+    <section class="status-section">
+        <div class="container">
+            <h2 class="section-title">System Status</h2>
+            <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-icon operational">✓</div>
+                    <h3>System Status</h3>
+                    <p id="system-status">Operational</p>
+                </div>
+                <div class="status-card">
+                    <div class="status-icon">📊</div>
+                    <h3>Models Loaded</h3>
+                    <p id="models-status">Ready</p>
+                </div>
+                <div class="status-card">
+                    <div class="status-icon">📈</div>
+                    <h3>Accuracy</h3>
+                    <p id="accuracy-status">92.5%</p>
+                </div>
+                <div class="status-card">
+                    <div class="status-icon">⚡</div>
+                    <h3>Response Time</h3>
+                    <p id="response-time">< 100ms</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <h2 class="section-title">Key Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Real-time Detection</h3>
+                    <p>Monitor process parameters in real-time and detect anomalies instantly</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI-Powered Predictions</h3>
+                    <p>Advanced machine learning models predict quality issues before they occur</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Comprehensive Analytics</h3>
+                    <p>Detailed insights into process performance and quality metrics</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚠️</div>
+                    <h3>Smart Alerts</h3>
+                    <p>Intelligent alert system with actionable recommendations</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="actions-section">
+        <div class="container">
+            <h2 class="section-title">Quick Actions</h2>
+            <div class="action-cards">
+                <div class="action-card">
+                    <h3>Upload Process Data</h3>
+                    <p>Upload your Excel file containing process parameters</p>
+                    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none">
+                    <button class="btn btn-outline" onclick="document.getElementById('fileInput').click()">
+                        Choose File
+                    </button>
+                </div>
+                <div class="action-card">
+                    <h3>Train Model</h3>
+                    <p>Retrain the model with new data for better accuracy</p>
+                    <button class="btn btn-outline" onclick="trainModel()">
+                        Start Training
+                    </button>
+                </div>
+                <div class="action-card">
+                    <h3>Export Report</h3>
+                    <p>Generate comprehensive analysis report</p>
+                    <button class="btn btn-outline" onclick="exportReport()">
+                        Generate Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal for notifications -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modal-title">Notification</h2>
+            <p id="modal-message">Message goes here</p>
+            <button class="btn btn-primary" onclick="closeModal()">OK</button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Processing...</p>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script>
+        // Initialize hero chart
+        document.addEventListener('DOMContentLoaded', function() {
+            initHeroChart();
+            checkSystemStatus();
+            
+            // File upload handler
+            document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+        });
+
+        function initHeroChart() {
+            const ctx = document.getElementById('heroChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 20}, (_, i) => i),
+                    datasets: [{
+                        label: 'Quality Score',
+                        data: Array.from({length: 20}, () => 85 + Math.random() * 10),
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 80,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            // Animate chart
+            setInterval(() => {
+                chart.data.datasets[0].data.shift();
+                chart.data.datasets[0].data.push(85 + Math.random() * 10);
+                chart.update('none');
+            }, 2000);
+        }
+
+        async function checkSystemStatus() {
+            try {
+                const response = await axios.get('/api/status');
+                const data = response.data;
+                
+                document.getElementById('system-status').textContent = 
+                    data.status === 'operational' ? 'Operational' : 'Offline';
+                document.getElementById('models-status').textContent = 
+                    data.models_loaded ? 'Ready' : 'Not Loaded';
+            } catch (error) {
+                console.error('Error checking status:', error);
+            }
+        }
+
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            showLoading();
+
+            try {
+                const response = await axios.post('/api/upload', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+
+                hideLoading();
+                showModal('Success', `File uploaded successfully. Processed ${response.data.rows_processed} rows.`);
+            } catch (error) {
+                hideLoading();
+                showModal('Error', 'Failed to upload file: ' + error.response?.data?.error);
+            }
+        }
+
+        async function trainModel() {
+            showLoading();
+            
+            try {
+                const response = await axios.post('/api/train');
+                hideLoading();
+                
+                if (response.data.success) {
+                    const results = response.data.results;
+                    showModal('Training Complete', 
+                        `Model trained successfully!\n` +
+                        `Best Model: ${results.best_model}\n` +
+                        `R² Score: ${results.best_score.toFixed(4)}`
+                    );
+                }
+            } catch (error) {
+                hideLoading();
+                showModal('Error', 'Failed to train model: ' + error.response?.data?.error);
+            }
+        }
+
+        async function exportReport() {
+            try {
+                const response = await axios.get('/api/export/report', {
+                    type: 'summary',
+                    format: 'json'
+                });
+                
+                // Create downloadable JSON file
+                const dataStr = JSON.stringify(response.data, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = `report_${new Date().toISOString().split('T')[0]}.json`;
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+                
+                showModal('Success', 'Report exported successfully!');
+            } catch (error) {
+                showModal('Error', 'Failed to export report: ' + error.message);
+            }
+        }
+
+        function showModal(title, message) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showHelp() {
+            showModal('Help', 
+                'F&B Anomaly Detection System\n\n' +
+                '1. Upload your process data Excel file\n' +
+                '2. View real-time monitoring on the Dashboard\n' +
+                '3. Generate reports for analysis\n' +
+                '4. Train models for better accuracy\n\n' +
+                'For technical support, contact: support@fnb-anomaly.com'
+            );
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

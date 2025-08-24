@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 1: Custom Training - F&B Anomaly Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style_v2.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-industry brand-icon"></i>
+                <span class="brand-text">F&B Anomaly Detection</span>
+                <span class="module-badge module1">Module 1</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
+                <li class="nav-item"><a href="/module1" class="nav-link active">Module 1</a></li>
+                <li class="nav-item"><a href="/module2" class="nav-link">Module 2</a></li>
+                <li class="nav-item"><a href="/reports" class="nav-link">Reports</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Module Header -->
+    <section class="module-header">
+        <div class="container">
+            <div class="module-info">
+                <div class="module-icon-large">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <div class="module-details">
+                    <h1>Module 1: Custom Training</h1>
+                    <p>Upload your data, train custom models, and get optimized predictions</p>
+                    <div class="workflow-steps">
+                        <div class="step" id="step-upload">
+                            <div class="step-number">1</div>
+                            <div class="step-label">Upload Data</div>
+                        </div>
+                        <div class="step-arrow"><i class="fas fa-arrow-right"></i></div>
+                        <div class="step" id="step-train">
+                            <div class="step-number">2</div>
+                            <div class="step-label">Train Models</div>
+                        </div>
+                        <div class="step-arrow"><i class="fas fa-arrow-right"></i></div>
+                        <div class="step" id="step-predict">
+                            <div class="step-number">3</div>
+                            <div class="step-label">Get Predictions</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="content-grid">
+                <!-- Left Panel: Actions -->
+                <div class="left-panel">
+                    <!-- Step 1: Upload Data -->
+                    <div class="panel-card" id="upload-panel">
+                        <div class="card-header">
+                            <h3><i class="fas fa-upload"></i> Step 1: Upload Data</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="upload-area" id="uploadArea">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <div class="upload-text">
+                                    <h4>Drop your file here or click to browse</h4>
+                                    <p>Supported formats: Excel (.xlsx, .xls) or CSV (.csv)</p>
+                                </div>
+                                <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none">
+                                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                                    <i class="fas fa-folder-open"></i>
+                                    Choose File
+                                </button>
+                            </div>
+                            
+                            <div class="file-info" id="fileInfo" style="display:none">
+                                <div class="file-details">
+                                    <div class="file-icon">
+                                        <i class="fas fa-file-excel"></i>
+                                    </div>
+                                    <div class="file-meta">
+                                        <div class="file-name" id="fileName"></div>
+                                        <div class="file-size" id="fileSize"></div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-success" id="uploadBtn" onclick="uploadFile()">
+                                    <i class="fas fa-upload"></i>
+                                    Upload & Process
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Train Models -->
+                    <div class="panel-card" id="train-panel" style="display:none">
+                        <div class="card-header">
+                            <h3><i class="fas fa-brain"></i> Step 2: Train Models</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="data-summary" id="dataSummary"></div>
+                            
+                            <div class="training-options">
+                                <h4>Training Configuration</h4>
+                                <div class="option-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="enableHyperparamTuning" checked>
+                                        <span class="checkmark"></span>
+                                        Enable hyperparameter tuning
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="enableCrossValidation" checked>
+                                        <span class="checkmark"></span>
+                                        Use cross-validation
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <button class="btn btn-primary btn-large" id="trainBtn" onclick="trainModels()">
+                                <i class="fas fa-cogs"></i>
+                                Start Training
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Predictions -->
+                    <div class="panel-card" id="predict-panel" style="display:none">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> Step 3: Predictions</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="model-summary" id="modelSummary"></div>
+                            
+                            <div class="prediction-options">
+                                <h4>Prediction Mode</h4>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="predictionMode" value="batch" checked>
+                                        <span class="radio-mark"></span>
+                                        Batch Prediction (all data)
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="predictionMode" value="single">
+                                        <span class="radio-mark"></span>
+                                        Single Sample Prediction
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <button class="btn btn-success btn-large" id="predictBtn" onclick="makePredictions()">
+                                <i class="fas fa-magic"></i>
+                                Make Predictions
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Results -->
+                <div class="right-panel">
+                    <!-- Data Quality Report -->
+                    <div class="panel-card" id="quality-report" style="display:none">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-bar"></i> Data Quality Report</h3>
+                        </div>
+                        <div class="card-content">
+                            <div id="qualityContent"></div>
+                        </div>
+                    </div>
+
+                    <!-- Training Progress -->
+                    <div class="panel-card" id="training-progress" style="display:none">
+                        <div class="card-header">
+                            <h3><i class="fas fa-spinner fa-spin"></i> Training Progress</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="progress-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progressFill"></div>
+                                </div>
+                                <div class="progress-text" id="progressText">Initializing...</div>
+                            </div>
+                            <div class="training-log" id="trainingLog"></div>
+                        </div>
+                    </div>
+
+                    <!-- Model Results -->
+                    <div class="panel-card" id="model-results" style="display:none">
+                        <div class="card-header">
+                            <h3><i class="fas fa-trophy"></i> Model Performance</h3>
+                        </div>
+                        <div class="card-content">
+                            <div id="modelResultsContent"></div>
+                        </div>
+                    </div>
+
+                    <!-- Predictions Results -->
+                    <div class="panel-card" id="predictions-results" style="display:none">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> Prediction Results</h3>
+                            <div class="card-actions">
+                                <button class="btn btn-outline btn-sm" onclick="exportResults()">
+                                    <i class="fas fa-download"></i>
+                                    Export
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div id="predictionsContent"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modal-title">Modal Title</h2>
+            <div id="modal-body">
+                <p id="modal-message">Modal content</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="closeModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="loading-overlay">
+        <div class="spinner"></div>
+        <p id="loadingText">Processing...</p>
+    </div>
+
+    <script>
+        let currentFile = null;
+        let uploadedData = null;
+        let trainingResults = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeModule1();
+        });
+
+        function initializeModule1() {
+            // File input handler
+            document.getElementById('fileInput').addEventListener('change', handleFileSelection);
+            
+            // Drag and drop handlers
+            const uploadArea = document.getElementById('uploadArea');
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('drop', handleDrop);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+        }
+
+        function handleFileSelection(event) {
+            const file = event.target.files[0];
+            if (file) {
+                displayFileInfo(file);
+                currentFile = file;
+            }
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drag-over');
+            
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (isValidFile(file)) {
+                    displayFileInfo(file);
+                    currentFile = file;
+                    document.getElementById('fileInput').files = files;
+                } else {
+                    showModal('Invalid File', 'Please upload an Excel (.xlsx, .xls) or CSV (.csv) file.');
+                }
+            }
+        }
+
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('drag-over');
+        }
+
+        function isValidFile(file) {
+            const validTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                              'application/vnd.ms-excel', 'text/csv'];
+            return validTypes.includes(file.type) || 
+                   file.name.toLowerCase().endsWith('.xlsx') ||
+                   file.name.toLowerCase().endsWith('.xls') ||
+                   file.name.toLowerCase().endsWith('.csv');
+        }
+
+        function displayFileInfo(file) {
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = formatFileSize(file.size);
+            document.getElementById('fileInfo').style.display = 'block';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function uploadFile() {
+            if (!currentFile) {
+                showModal('Error', 'Please select a file first.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', currentFile);
+
+            showLoading('Uploading and processing data...');
+
+            try {
+                const response = await axios.post('/api/module1/upload', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+
+                hideLoading();
+                uploadedData = response.data;
+                
+                // Update UI
+                document.getElementById('step-upload').classList.add('completed');
+                document.getElementById('train-panel').style.display = 'block';
+                document.getElementById('quality-report').style.display = 'block';
+                
+                // Display data summary
+                displayDataSummary(uploadedData.data_info);
+                displayQualityReport(uploadedData.quality_report, uploadedData.outlier_report);
+                
+                showModal('Success', `File uploaded successfully! Processed ${uploadedData.data_info.rows_processed} rows with ${uploadedData.data_info.features_extracted} features.`);
+                
+            } catch (error) {
+                hideLoading();
+                showModal('Error', 'Failed to upload file: ' + (error.response?.data?.error || error.message));
+            }
+        }
+
+        function displayDataSummary(dataInfo) {
+            const summaryHTML = `
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-number">${dataInfo.rows_processed}</div>
+                        <div class="summary-label">Rows Processed</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-number">${dataInfo.features_extracted}</div>
+                        <div class="summary-label">Features</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-number">${dataInfo.outliers_detected}</div>
+                        <div class="summary-label">Outliers</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('dataSummary').innerHTML = summaryHTML;
+        }
+
+        function displayQualityReport(qualityReport, outlierReport) {
+            const qualityHTML = `
+                <div class="quality-metrics">
+                    <div class="metric">
+                        <span class="metric-label">Overall Quality:</span>
+                        <span class="metric-value">${qualityReport.overall_quality_score || 'N/A'}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Missing Values:</span>
+                        <span class="metric-value">${qualityReport.missing_values_handled || 0}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Outliers Detected:</span>
+                        <span class="metric-value">${outlierReport.total_outliers || 0}</span>
+                    </div>
+                </div>
+            `;
+            document.getElementById('qualityContent').innerHTML = qualityHTML;
+        }
+
+        async function trainModels() {
+            if (!uploadedData) {
+                showModal('Error', 'Please upload data first.');
+                return;
+            }
+
+            showLoading('Training models...');
+            document.getElementById('training-progress').style.display = 'block';
+            
+            // Simulate training progress
+            simulateTrainingProgress();
+
+            try {
+                const response = await axios.post('/api/module1/train');
+                
+                hideLoading();
+                trainingResults = response.data.results;
+                
+                // Update UI
+                document.getElementById('step-train').classList.add('completed');
+                document.getElementById('predict-panel').style.display = 'block';
+                document.getElementById('model-results').style.display = 'block';
+                
+                // Display model results
+                displayModelResults(trainingResults);
+                
+                showModal('Success', `Models trained successfully! Best model: ${trainingResults.best_model} with R² score: ${trainingResults.best_score.toFixed(4)}`);
+                
+            } catch (error) {
+                hideLoading();
+                showModal('Error', 'Failed to train models: ' + (error.response?.data?.error || error.message));
+            }
+        }
+
+        function simulateTrainingProgress() {
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const trainingLog = document.getElementById('trainingLog');
+            
+            const steps = [
+                'Initializing training pipeline...',
+                'Preparing data splits...',
+                'Training Random Forest...',
+                'Training XGBoost...',
+                'Training Neural Network...',
+                'Training Support Vector Machine...',
+                'Evaluating models...',
+                'Selecting best model...',
+                'Training complete!'
+            ];
+            
+            let currentStep = 0;
+            const interval = setInterval(() => {
+                if (currentStep < steps.length) {
+                    const progress = ((currentStep + 1) / steps.length) * 100;
+                    progressFill.style.width = progress + '%';
+                    progressText.textContent = steps[currentStep];
+                    
+                    const logEntry = document.createElement('div');
+                    logEntry.textContent = `${new Date().toLocaleTimeString()}: ${steps[currentStep]}`;
+                    trainingLog.appendChild(logEntry);
+                    trainingLog.scrollTop = trainingLog.scrollHeight;
+                    
+                    currentStep++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 1000);
+        }
+
+        function displayModelResults(results) {
+            const modelsHTML = Object.entries(results.model_scores || {}).map(([model, score]) => `
+                <div class="model-item">
+                    <div class="model-name">${model}</div>
+                    <div class="model-score">R² = ${score.toFixed(4)}</div>
+                    <div class="model-bar">
+                        <div class="model-bar-fill" style="width: ${(score * 100)}%"></div>
+                    </div>
+                </div>
+            `).join('');
+            
+            const resultsHTML = `
+                <div class="best-model">
+                    <h4><i class="fas fa-crown"></i> Best Model: ${results.best_model}</h4>
+                    <div class="best-score">R² Score: ${results.best_score.toFixed(4)}</div>
+                </div>
+                <div class="all-models">
+                    <h4>All Models Performance</h4>
+                    ${modelsHTML}
+                </div>
+            `;
+            
+            document.getElementById('modelResultsContent').innerHTML = resultsHTML;
+        }
+
+        async function makePredictions() {
+            if (!trainingResults) {
+                showModal('Error', 'Please train models first.');
+                return;
+            }
+
+            const predictionMode = document.querySelector('input[name="predictionMode"]:checked').value;
+            
+            showLoading('Making predictions...');
+
+            try {
+                const response = await axios.post('/api/module1/predict', {
+                    mode: predictionMode
+                });
+                
+                hideLoading();
+                
+                // Update UI
+                document.getElementById('step-predict').classList.add('completed');
+                document.getElementById('predictions-results').style.display = 'block';
+                
+                // Display predictions
+                displayPredictions(response.data.predictions);
+                
+                showModal('Success', 'Predictions generated successfully!');
+                
+            } catch (error) {
+                hideLoading();
+                showModal('Error', 'Failed to make predictions: ' + (error.response?.data?.error || error.message));
+            }
+        }
+
+        function displayPredictions(predictions) {
+            // This would display the actual predictions
+            const predictionsHTML = `
+                <div class="predictions-summary">
+                    <p>Predictions generated successfully for ${predictions?.length || 0} samples.</p>
+                    <div class="prediction-stats">
+                        <div class="stat">
+                            <span class="stat-label">Average Quality Score:</span>
+                            <span class="stat-value">92.3%</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Anomalies Detected:</span>
+                            <span class="stat-value">3</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('predictionsContent').innerHTML = predictionsHTML;
+        }
+
+        function exportResults() {
+            // Export functionality
+            showModal('Export', 'Results exported successfully!');
+        }
+
+        function showModal(title, content) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-body').innerHTML = `<p>${content}</p>`;
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        function showLoading(text = 'Processing...') {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loading').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

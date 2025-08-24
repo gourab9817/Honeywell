@@ -1,0 +1,59 @@
+Feature,Importance
+Oven Humidity (%)_deviation_std,0.15398036
+Water Temp (C)_range,0.14986853
+Water Temp (C)_time_to_steady,0.114222154
+Mixer Speed (RPM)_trend_strength,0.08473194
+Yeast (kg)_mean_deviation,0.06859961
+Water Temp (C)_median,0.06526953
+Yeast (kg)_kurtosis,0.050853938
+Yeast (kg)_trend_slope,0.04336481
+Yeast (kg)_max_consecutive_oot,0.035583206
+Salt (kg)_mean_change_rate,0.035235927
+Oven Humidity (%)_median,0.025716396
+Mixing Temp (C)_mean,0.023493538
+Mixer Speed (RPM)_stability,0.021605777
+Water Temp (C)_max_deviation,0.017333362
+Flour (kg)_range,0.015293991
+Sugar (kg)_min,0.015258904
+Sugar (kg)_num_valleys,0.011502047
+Mixer Speed (RPM)_q75,0.01001737
+Yeast (kg)_mean_change_rate,0.0060824193
+Yeast (kg)_std,0.0058623943
+Oven Humidity (%)_q25,0.0058241785
+Oven Temp (C)_mean,0.0055816094
+Salt (kg)_min,0.005165901
+Oven Humidity (%)_skewness,0.0046327976
+Mixer Speed (RPM)_trend_slope,0.003998641
+Oven Humidity (%)_range,0.0038685466
+Oven Humidity (%)_iqr,0.0032504515
+Flour (kg)_volatility,0.0028838858
+Fermentation Temp (C)_min,0.002054614
+Mixer Speed (RPM)_mean_deviation,0.0019159326
+Oven Temp (C)_trend_strength,0.001694063
+Fermentation Temp (C)_cv,0.0015917862
+Oven Humidity (%)_mean_deviation,0.0013113818
+Flour (kg)_mean_change_rate,0.0011235187
+Water Temp (C)_iqr,0.00056783087
+Oven Humidity (%)_mean,0.000314427
+Mixer Speed (RPM)_critical_deviation_ratio,0.00028910677
+Yeast (kg)_iqr,5.521297e-05
+Yeast (kg)_deviation_std,0.0
+Yeast (kg)_cv,0.0
+Fermentation Temp (C)_deviation_std,0.0
+Mixer Speed (RPM)_deviation_std,0.0
+Oven Humidity (%)_max_consecutive_oot,0.0
+Oven Humidity (%)_std,0.0
+Oven Temp (C)_q75,0.0
+Salt (kg)_out_of_tolerance_ratio,0.0
+Oven Humidity (%)_cv,0.0
+Mixer Speed (RPM)_std,0.0
+Sugar (kg)_num_peaks,0.0
+Yeast (kg)_stability,0.0
+Oven Humidity (%)_stability,0.0
+Yeast (kg)_out_of_tolerance_ratio,0.0
+Mixer Speed (RPM)_cv,0.0
+Fermentation Temp (C)_stability,0.0
+Oven Humidity (%)_out_of_tolerance_ratio,0.0
+Sugar (kg)_critical_deviation_ratio,0.0
+Fermentation Temp (C)_std,0.0
+Fermentation Temp (C)_time_to_steady,0.0

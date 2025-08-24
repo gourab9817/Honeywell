@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - F&B Anomaly Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="brand-icon">🏭</span>
+                <span class="brand-text">F&B Anomaly Detection</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
+                <li class="nav-item"><a href="/dashboard" class="nav-link active">Dashboard</a></li>
+                <li class="nav-item"><a href="/reports" class="nav-link">Reports</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" onclick="showHelp()">Help</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <h1>Real-time Process Monitoring</h1>
+            <div class="header-controls">
+                <select id="batchSelect" class="select-control">
+                    <option>Current Batch</option>
+                    <option>Batch #24</option>
+                    <option>Batch #23</option>
+                </select>
+                <button class="btn btn-sm btn-primary" onclick="refreshDashboard()">
+                    🔄 Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="container">
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Current Batch</div>
+                <div class="kpi-value" id="current-batch">#25</div>
+                <div class="kpi-change positive">+2 today</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Quality Score</div>
+                <div class="kpi-value" id="quality-score">87.3%</div>
+                <div class="kpi-change positive">↑ 2.1%</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Predicted Weight</div>
+                <div class="kpi-value" id="predicted-weight">49.8 kg</div>
+                <div class="kpi-change neutral">± 0.2 kg</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Anomaly Risk</div>
+                <div class="kpi-value risk-low" id="anomaly-risk">Low</div>
+                <div class="kpi-change positive">✓ Normal</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Content -->
+    <div class="container dashboard-content">
+        <div class="dashboard-grid">
+            <!-- Process Parameters Panel -->
+            <div class="dashboard-panel">
+                <div class="panel-header">
+                    <h2>Process Parameters</h2>
+                    <span class="panel-status">Live</span>
+                </div>
+                <div class="panel-body">
+                    <div id="parameters-list" class="parameters-list">
+                        <!-- Parameters will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quality Gauge -->
+            <div class="dashboard-panel">
+                <div class="panel-header">
+                    <h2>Quality Prediction</h2>
+                </div>
+                <div class="panel-body center">
+                    <div class="quality-gauge-container">
+                        <canvas id="qualityGauge"></canvas>
+                        <div class="gauge-value">
+                            <span id="gauge-score">87</span>
+                            <span class="gauge-label">Quality Score</span>
+                        </div>
+                    </div>
+                    <div class="prediction-details">
+                        <div class="prediction-item">
+                            <span>Confidence:</span>
+                            <span id="confidence">94%</span>
+                        </div>
+                        <div class="prediction-item">
+                            <span>Next Check:</span>
+                            <span id="next-check">2 min</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trend Chart -->
+            <div class="dashboard-panel full-width">
+                <div class="panel-header">
+                    <h2>Process Trends</h2>
+                    <div class="chart-controls">
+                        <button class="btn-chart active" onclick="changeTimeRange('1h')">1H</button>
+                        <button class="btn-chart" onclick="changeTimeRange('4h')">4H</button>
+                        <button class="btn-chart" onclick="changeTimeRange('1d')">1D</button>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Alerts Panel -->
+            <div class="dashboard-panel">
+                <div class="panel-header">
+                    <h2>Recent Alerts</h2>
+                    <span class="badge" id="alert-count">2</span>
+                </div>
+                <div class="panel-body">
+                    <div id="alerts-list" class="alerts-list">
+                        <!-- Alerts will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommendations Panel -->
+            <div class="dashboard-panel">
+                <div class="panel-header">
+                    <h2>Recommendations</h2>
+                </div>
+                <div class="panel-body">
+                    <div id="recommendations-list" class="recommendations-list">
+                        <!-- Recommendations will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="alertModal" class="alert-modal">
+        <div class="alert-modal-content">
+            <div class="alert-modal-header critical">
+                <span class="alert-icon">⚠️</span>
+                <h3>Critical Alert</h3>
+            </div>
+            <div class="alert-modal-body">
+                <p id="alert-message">Alert message here</p>
+            </div>
+            <div class="alert-modal-footer">
+                <button class="btn btn-primary" onclick="acknowledgeAlert()">Acknowledge</button>
+                <button class="btn btn-secondary" onclick="closeAlertModal()">Dismiss</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script>
+        let trendChart = null;
+        let qualityGauge = null;
+        let updateInterval = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+            startRealTimeUpdates();
+        });
+
+        function initializeDashboard() {
+            initTrendChart();
+            initQualityGauge();
+            loadProcessParameters();
+            loadAlerts();
+            loadRecommendations();
+        }
+
+        function initTrendChart() {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Oven Temperature (°C)',
+                            data: [],
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                            yAxisID: 'y',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Quality Score (%)',
+                            data: [],
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                            yAxisID: 'y1',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Quality Score (%)'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            updateTrendChart();
+        }
+
+        function initQualityGauge() {
+            const ctx = document.getElementById('qualityGauge').getContext('2d');
+            qualityGauge = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [87, 13],
+                        backgroundColor: [
+                            'rgba(40, 167, 69, 0.8)',
+                            'rgba(200, 200, 200, 0.2)'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    circumference: 180,
+                    rotation: 270,
+                    cutout: '75%',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadProcessParameters() {
+            try {
+                const response = await axios.get('/api/process-parameters');
+                const parameters = response.data;
+                
+                const parametersList = document.getElementById('parameters-list');
+                parametersList.innerHTML = '';
+                
+                Object.entries(parameters).forEach(([name, data]) => {
+                    const paramDiv = document.createElement('div');
+                    paramDiv.className = `parameter-item ${data.status}`;
+                    paramDiv.innerHTML = `
+                        <div class="parameter-name">${name}</div>
+                        <div class="parameter-value">
+                            ${data.current.toFixed(1)} ${data.unit}
+                            <span class="parameter-ideal">(ideal: ${data.ideal})</span>
+                        </div>
+                        <div class="parameter-bar">
+                            <div class="parameter-bar-fill" style="width: ${Math.min(100, (data.current / data.ideal) * 100)}%"></div>
+                        </div>
+                    `;
+                    parametersList.appendChild(paramDiv);
+                });
+            } catch (error) {
+                console.error('Error loading parameters:', error);
+            }
+        }
+
+        async function loadAlerts() {
+            try {
+                const response = await axios.get('/api/alerts?hours=24');
+                const alerts = response.data;
+                
+                const alertsList = document.getElementById('alerts-list');
+                alertsList.innerHTML = '';
+                
+                document.getElementById('alert-count').textContent = alerts.length;
+                
+                alerts.slice(0, 5).forEach(alert => {
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = `alert-item ${alert.severity}`;
+                    alertDiv.innerHTML = `
+                        <div class="alert-time">${new Date(alert.timestamp).toLocaleTimeString()}</div>
+                        <div class="alert-message">${alert.message}</div>
+                        <div class="alert-param">${alert.parameter || ''}</div>
+                    `;
+                    alertsList.appendChild(alertDiv);
+                });
+                
+                if (alerts.length === 0) {
+                    alertsList.innerHTML = '<div class="no-alerts">No recent alerts</div>';
+                }
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+            }
+        }
+
+        async function loadRecommendations() {
+            try {
+                const response = await axios.post('/api/predict', {}, {
+                    headers: {'Content-Type': 'application/json'},
+                });
+                
+                const recommendations = response.data.recommendations || [];
+                const recommendationsList = document.getElementById('recommendations-list');
+                recommendationsList.innerHTML = '';
+                
+                recommendations.slice(0, 3).forEach(rec => {
+                    const recDiv = document.createElement('div');
+                    recDiv.className = `recommendation-item ${rec.priority}`;
+                    recDiv.innerHTML = `
+                        <div class="rec-priority">${rec.priority.toUpperCase()}</div>
+                        <div class="rec-action">${rec.action}</div>
+                        <div class="rec-impact">${rec.expected_impact}</div>
+                    `;
+                    recommendationsList.appendChild(recDiv);
+                });
+                
+                if (recommendations.length === 0) {
+                    recommendationsList.innerHTML = '<div class="no-recommendations">All parameters within optimal range</div>';
+                }
+            } catch (error) {
+                console.error('Error loading recommendations:', error);
+            }
+        }
+
+        async function updateTrendChart() {
+            try {
+                const response = await axios.get('/api/trend-data?hours=1');
+                const data = response.data;
+                
+                trendChart.data.labels = data.timestamps.map(t => 
+                    new Date(t).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                );
+                
+                if (data.parameters['Oven Temp (C)']) {
+                    trendChart.data.datasets[0].data = data.parameters['Oven Temp (C)'];
+                }
+                
+                if (data.quality_score) {
+                    trendChart.data.datasets[1].data = data.quality_score;
+                }
+                
+                trendChart.update('none');
+            } catch (error) {
+                console.error('Error updating trend chart:', error);
+            }
+        }
+
+        async function updateRealTimeData() {
+            try {
+                const response = await axios.get('/api/realtime-prediction');
+                const data = response.data;
+                
+                // Update KPIs
+                if (data.predictions) {
+                    document.getElementById('quality-score').textContent = 
+                        `${data.predictions.expected_quality?.toFixed(1) || 87}%`;
+                    document.getElementById('predicted-weight').textContent = 
+                        `${data.predictions.expected_weight?.toFixed(1) || 50} kg`;
+                }
+                
+                // Update risk level
+                const riskLevel = data.risk_level || 'low';
+                const riskElement = document.getElementById('anomaly-risk');
+                riskElement.textContent = riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1);
+                riskElement.className = `kpi-value risk-${riskLevel}`;
+                
+                // Update quality gauge
+                const qualityValue = data.predictions?.expected_quality || 87;
+                document.getElementById('gauge-score').textContent = Math.round(qualityValue);
+                
+                qualityGauge.data.datasets[0].data = [qualityValue, 100 - qualityValue];
+                qualityGauge.data.datasets[0].backgroundColor = [
+                    qualityValue > 85 ? 'rgba(40, 167, 69, 0.8)' : 
+                    qualityValue > 80 ? 'rgba(255, 193, 7, 0.8)' : 'rgba(220, 53, 69, 0.8)',
+                    'rgba(200, 200, 200, 0.2)'
+                ];
+                qualityGauge.update('none');
+                
+                // Check for critical alerts
+                if (data.alerts && data.alerts.length > 0) {
+                    const criticalAlert = data.alerts.find(a => a.severity === 'critical');
+                    if (criticalAlert) {
+                        showAlert(criticalAlert.message);
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating real-time data:', error);
+            }
+        }
+
+        function startRealTimeUpdates() {
+            // Update every 5 seconds
+            updateInterval = setInterval(() => {
+                updateRealTimeData();
+                loadProcessParameters();
+            }, 5000);
+            
+            // Update chart every 10 seconds
+            setInterval(() => {
+                updateTrendChart();
+            }, 10000);
+        }
+
+        function refreshDashboard() {
+            loadProcessParameters();
+            loadAlerts();
+            loadRecommendations();
+            updateTrendChart();
+            updateRealTimeData();
+            
+            // Show refresh indicator
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = '⏳ Refreshing...';
+            
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = '🔄 Refresh';
+            }, 1000);
+        }
+
+        function changeTimeRange(range) {
+            // Update button states
+            document.querySelectorAll('.btn-chart').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Reload chart with new range
+            const hours = range === '1h' ? 1 : range === '4h' ? 4 : 24;
+            axios.get(`/api/trend-data?hours=${hours}`).then(response => {
+                const data = response.data;
+                trendChart.data.labels = data.timestamps.map(t => 
+                    new Date(t).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                );
+                trendChart.update();
+            });
+        }
+
+        function showAlert(message) {
+            document.getElementById('alert-message').textContent = message;
+            document.getElementById('alertModal').style.display = 'block';
+        }
+
+        function acknowledgeAlert() {
+            closeAlertModal();
+            // Could send acknowledgment to server
+        }
+
+        function closeAlertModal() {
+            document.getElementById('alertModal').style.display = 'none';
+        }
+
+        function showHelp() {
+            alert('Dashboard Help\n\n' +
+                  '• Monitor real-time process parameters\n' +
+                  '• View quality predictions and trends\n' +
+                  '• Review alerts and recommendations\n' +
+                  '• Click refresh to update all data\n' +
+                  '• Use time range buttons to adjust chart view');
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
+    </script>
+</body>
+</html>

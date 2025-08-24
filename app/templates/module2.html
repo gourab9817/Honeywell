@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 2: Instant Predictions - F&B Anomaly Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style_v2.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-industry brand-icon"></i>
+                <span class="brand-text">F&B Anomaly Detection</span>
+                <span class="module-badge module2">Module 2</span>
+            </div>
+                         <ul class="nav-menu">
+                 <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
+                 <li class="nav-item"><a href="/module1" class="nav-link">Module 1</a></li>
+                 <li class="nav-item"><a href="/module2" class="nav-link active">Module 2</a></li>
+                 <li class="nav-item"><a href="/graphs" class="nav-link">Graphs</a></li>
+                 <li class="nav-item"><a href="/reports" class="nav-link">Reports</a></li>
+             </ul>
+        </div>
+    </nav>
+
+    <!-- Module Header -->
+    <section class="module-header">
+        <div class="container">
+            <div class="module-info">
+                <div class="module-icon-large">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="module-details">
+                    <h1>Module 2: Instant Predictions</h1>
+                    <p>Upload your data and get instant predictions using pre-trained models</p>
+                    <div class="module-stats">
+                        <div class="stat-item">
+                            <div class="stat-number" id="modelsCount">{{ module2_status.models_count or 0 }}</div>
+                            <div class="stat-label">Pre-trained Models</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">< 1s</div>
+                            <div class="stat-label">Response Time</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">95%+</div>
+                            <div class="stat-label">Accuracy</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="content-grid">
+                <!-- Left Panel: Input & Controls -->
+                <div class="left-panel">
+                    <!-- Model Selection -->
+                    <div class="panel-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-brain"></i> Model Selection</h3>
+                            <button class="btn btn-outline btn-sm" onclick="refreshModels()">
+                                <i class="fas fa-sync"></i>
+                                Refresh
+                            </button>
+                        </div>
+                        <div class="card-content">
+                            <div class="model-selector">
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="modelChoice" value="ensemble" checked>
+                                        <span class="radio-mark"></span>
+                                        <div class="radio-content">
+                                            <div class="radio-title">Ensemble Model (Recommended)</div>
+                                            <div class="radio-desc">Combines multiple models for best accuracy</div>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div id="individualModels"></div>
+                            </div>
+                            
+                            <div class="model-info" id="modelInfo">
+                                <div class="info-item">
+                                    <span class="info-label">Selected:</span>
+                                    <span class="info-value" id="selectedModel">Ensemble Model</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Expected Accuracy:</span>
+                                    <span class="info-value" id="expectedAccuracy">95%+</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Input -->
+                    <div class="panel-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-upload"></i> Data Input</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="input-tabs">
+                                <button class="tab-btn active" onclick="switchTab('file')">
+                                    <i class="fas fa-file-upload"></i>
+                                    File Upload
+                                </button>
+                                <button class="tab-btn" onclick="switchTab('manual')">
+                                    <i class="fas fa-keyboard"></i>
+                                    Manual Input
+                                </button>
+                                <button class="tab-btn" onclick="switchTab('batch')">
+                                    <i class="fas fa-layer-group"></i>
+                                    Batch Upload
+                                </button>
+                                <button class="tab-btn" onclick="switchTab('comprehensive')">
+                                    <i class="fas fa-chart-area"></i>
+                                    Comprehensive Analysis
+                                </button>
+                            </div>
+
+                            <!-- File Upload Tab -->
+                            <div class="tab-content" id="fileTab">
+                                <div class="upload-area" id="uploadArea">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <div class="upload-text">
+                                        <h4>Drop your process data file here</h4>
+                                        <p>Excel (.xlsx, .xls) or CSV (.csv)</p>
+                                    </div>
+                                    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none">
+                                    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                                        <i class="fas fa-folder-open"></i>
+                                        Choose File
+                                    </button>
+                                </div>
+                                
+                                <div class="file-info" id="fileInfo" style="display:none">
+                                    <div class="file-details">
+                                        <div class="file-icon">
+                                            <i class="fas fa-file-excel"></i>
+                                        </div>
+                                        <div class="file-meta">
+                                            <div class="file-name" id="fileName"></div>
+                                            <div class="file-size" id="fileSize"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Manual Input Tab -->
+                            <div class="tab-content" id="manualTab" style="display:none">
+                                <div class="manual-input-form">
+                                    <h4>Process Parameters</h4>
+                                    <div class="input-grid">
+                                        <div class="input-group">
+                                            <label>Flour (kg)</label>
+                                            <input type="number" id="flour" step="0.1" placeholder="50.0">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Sugar (kg)</label>
+                                            <input type="number" id="sugar" step="0.1" placeholder="12.5">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Yeast (kg)</label>
+                                            <input type="number" id="yeast" step="0.01" placeholder="0.5">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Salt (kg)</label>
+                                            <input type="number" id="salt" step="0.01" placeholder="0.8">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Water Temp (°C)</label>
+                                            <input type="number" id="waterTemp" step="0.1" placeholder="25.0">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Mixer Speed (RPM)</label>
+                                            <input type="number" id="mixerSpeed" placeholder="120">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Mixing Temp (°C)</label>
+                                            <input type="number" id="mixingTemp" step="0.1" placeholder="38.0">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Fermentation Temp (°C)</label>
+                                            <input type="number" id="fermentationTemp" step="0.1" placeholder="37.0">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Oven Temp (°C)</label>
+                                            <input type="number" id="ovenTemp" step="0.1" placeholder="180.0">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Oven Humidity (%)</label>
+                                            <input type="number" id="ovenHumidity" step="0.1" placeholder="45.0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Batch Upload Tab -->
+                            <div class="tab-content" id="batchTab" style="display:none">
+                                <div class="batch-upload">
+                                    <div class="batch-info">
+                                        <i class="fas fa-info-circle"></i>
+                                        <p>Upload a file with multiple samples for batch prediction</p>
+                                    </div>
+                                    <input type="file" id="batchFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+                                    <button class="btn btn-secondary" onclick="document.getElementById('batchFileInput').click()">
+                                        <i class="fas fa-upload"></i>
+                                        Upload Batch File
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Comprehensive Analysis Tab -->
+                            <div class="tab-content" id="comprehensiveTab" style="display:none">
+                                <div class="comprehensive-analysis">
+                                    <div class="comprehensive-info">
+                                        <div class="info-header">
+                                            <i class="fas fa-chart-area"></i>
+                                            <h4>Comprehensive Analysis</h4>
+                                        </div>
+                                        <p>Get detailed predictions, anomaly detection, quality assessment, and analysis graphs for your process data.</p>
+                                        
+                                        <div class="features-grid">
+                                            <div class="feature-item">
+                                                <i class="fas fa-brain"></i>
+                                                <span>Ensemble Predictions</span>
+                                            </div>
+                                            <div class="feature-item">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                                <span>Anomaly Detection</span>
+                                            </div>
+                                            <div class="feature-item">
+                                                <i class="fas fa-chart-line"></i>
+                                                <span>Analysis Graphs</span>
+                                            </div>
+                                            <div class="feature-item">
+                                                <i class="fas fa-file-download"></i>
+                                                <span>Detailed JSON Report</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="comprehensive-upload">
+                                        <div class="upload-area-comprehensive" id="comprehensiveUploadArea">
+                                            <div class="upload-icon">
+                                                <i class="fas fa-file-chart-line"></i>
+                                            </div>
+                                            <div class="upload-text">
+                                                <h4>Upload Process Data for Analysis</h4>
+                                                <p>Excel (.xlsx, .xls) or CSV (.csv) with complete process data</p>
+                                            </div>
+                                            <input type="file" id="comprehensiveFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+                                            <button class="btn btn-primary" onclick="document.getElementById('comprehensiveFileInput').click()">
+                                                <i class="fas fa-folder-open"></i>
+                                                Select Process Data File
+                                            </button>
+                                        </div>
+                                        
+                                        <div class="comprehensive-file-info" id="comprehensiveFileInfo" style="display:none">
+                                            <div class="file-details">
+                                                <div class="file-icon">
+                                                    <i class="fas fa-file-excel"></i>
+                                                </div>
+                                                <div class="file-meta">
+                                                    <div class="file-name" id="comprehensiveFileName"></div>
+                                                    <div class="file-size" id="comprehensiveFileSize"></div>
+                                                </div>
+                                                <div class="file-actions">
+                                                    <button class="btn btn-outline btn-sm" onclick="clearComprehensiveFile()">
+                                                        <i class="fas fa-times"></i>
+                                                        Clear
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                                        <!-- Predict Button -->
+            <div class="predict-section">
+                <button class="btn btn-success btn-large" id="predictBtn" onclick="makePrediction()">
+                    <i class="fas fa-magic"></i>
+                    Get Instant Prediction
+                </button>
+                <div class="comprehensive-actions" id="comprehensiveActions" style="display:none">
+                    <button class="btn btn-primary btn-large" onclick="runComprehensiveAnalysis()">
+                        <i class="fas fa-chart-area"></i>
+                        Run Comprehensive Analysis
+                    </button>
+                </div>
+            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Results -->
+                <div class="right-panel">
+                    <!-- Model Status -->
+                    <div class="panel-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-bar"></i> Model Status</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="status-grid" id="modelStatus">
+                                {% if module2_status.loaded %}
+                                <div class="status-item success">
+                                    <div class="status-icon"><i class="fas fa-check-circle"></i></div>
+                                    <div class="status-text">
+                                        <div class="status-title">Models Loaded</div>
+                                        <div class="status-desc">{{ module2_status.models_count }} models ready</div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="status-item error">
+                                    <div class="status-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                    <div class="status-text">
+                                        <div class="status-title">Models Not Available</div>
+                                        <div class="status-desc">Please run training script</div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Prediction Results -->
+                    <div class="panel-card" id="resultsPanel" style="display:none">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> Prediction Results</h3>
+                            <div class="card-actions">
+                                <button class="btn btn-outline btn-sm" onclick="exportPredictions()">
+                                    <i class="fas fa-download"></i>
+                                    Export
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div id="predictionResults"></div>
+                        </div>
+                    </div>
+
+                    <!-- Confidence Analysis -->
+                    <div class="panel-card" id="confidencePanel" style="display:none">
+                        <div class="card-header">
+                            <h3><i class="fas fa-shield-alt"></i> Confidence Analysis</h3>
+                        </div>
+                        <div class="card-content">
+                            <div id="confidenceAnalysis"></div>
+                        </div>
+                    </div>
+
+                    <!-- Model Comparison -->
+                    <div class="panel-card" id="comparisonPanel" style="display:none">
+                        <div class="card-header">
+                            <h3><i class="fas fa-balance-scale"></i> Model Comparison</h3>
+                        </div>
+                        <div class="card-content">
+                            <div id="modelComparison"></div>
+                        </div>
+                    </div>
+
+                    <!-- Comprehensive Analysis Results -->
+                    <div class="panel-card" id="comprehensiveResultsPanel" style="display:none">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-area"></i> Comprehensive Analysis Report</h3>
+                                                         <div class="card-actions">
+                                 <button class="btn btn-outline btn-sm" onclick="downloadComprehensiveReport()">
+                                     <i class="fas fa-download"></i>
+                                     Download JSON
+                                 </button>
+                                 <button class="btn btn-outline btn-sm" onclick="viewAnalysisGraphs()">
+                                     <i class="fas fa-images"></i>
+                                     View Graphs
+                                 </button>
+                                 <button class="btn btn-outline btn-sm" onclick="loadReportFile()">
+                                     <i class="fas fa-folder-open"></i>
+                                     Load Report
+                                 </button>
+                             </div>
+                        </div>
+                        <div class="card-content">
+                            <div id="comprehensiveResults"></div>
+                        </div>
+                    </div>
+
+                    <!-- Anomaly Detection Results -->
+                    <div class="panel-card" id="anomalyPanel" style="display:none">
+                        <div class="card-header">
+                            <h3><i class="fas fa-exclamation-triangle"></i> Anomaly Detection</h3>
+                        </div>
+                        <div class="card-content">
+                            <div id="anomalyResults"></div>
+                        </div>
+                    </div>
+
+                    <!-- Quality Assessment -->
+                    <div class="panel-card" id="qualityPanel" style="display:none">
+                        <div class="card-header">
+                            <h3><i class="fas fa-award"></i> Quality Assessment</h3>
+                        </div>
+                        <div class="card-content">
+                            <div id="qualityResults"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modal-title">Modal Title</h2>
+            <div id="modal-body">
+                <p id="modal-message">Modal content</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="closeModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="loading-overlay">
+        <div class="spinner"></div>
+        <p id="loadingText">Getting instant prediction...</p>
+    </div>
+
+    <script>
+        let availableModels = [];
+        let currentFile = null;
+        let lastPredictionResult = null;
+        let comprehensiveFile = null;
+        let comprehensiveAnalysisResult = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeModule2();
+        });
+
+        async function initializeModule2() {
+            // Load available models
+            await loadModels();
+            
+            // Initialize file handlers
+            document.getElementById('fileInput').addEventListener('change', handleFileSelection);
+            document.getElementById('batchFileInput').addEventListener('change', handleBatchFileSelection);
+            document.getElementById('comprehensiveFileInput').addEventListener('change', handleComprehensiveFileSelection);
+            
+            // Drag and drop handlers
+            const uploadArea = document.getElementById('uploadArea');
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('drop', handleDrop);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+            
+            // Model selection handlers
+            document.addEventListener('change', function(e) {
+                if (e.target.name === 'modelChoice') {
+                    updateModelInfo();
+                }
+            });
+        }
+
+        async function loadModels() {
+            try {
+                const response = await axios.get('/api/module2/models');
+                if (response.data.success) {
+                    availableModels = response.data.models;
+                    displayAvailableModels(availableModels);
+                    updateModelStatus(response.data.status);
+                } else {
+                    showModal('Error', 'Failed to load models: ' + response.data.error);
+                }
+            } catch (error) {
+                console.error('Error loading models:', error);
+                showModal('Error', 'Failed to load models. Please ensure Module 2 is properly set up.');
+            }
+        }
+
+        function displayAvailableModels(models) {
+            const container = document.getElementById('individualModels');
+            const modelsHTML = models.map(model => `
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="modelChoice" value="${model.key}">
+                        <span class="radio-mark"></span>
+                        <div class="radio-content">
+                            <div class="radio-title">${model.name}</div>
+                            <div class="radio-desc">R² Score: ${model.avg_r2_score.toFixed(4)} | Type: ${model.type}</div>
+                        </div>
+                    </label>
+                </div>
+            `).join('');
+            
+            container.innerHTML = modelsHTML;
+        }
+
+        function updateModelStatus(status) {
+            if (status.loaded) {
+                document.getElementById('modelsCount').textContent = status.models_count;
+            }
+        }
+
+        function updateModelInfo() {
+            const selectedRadio = document.querySelector('input[name="modelChoice"]:checked');
+            const selectedValue = selectedRadio.value;
+            
+            if (selectedValue === 'ensemble') {
+                document.getElementById('selectedModel').textContent = 'Ensemble Model';
+                document.getElementById('expectedAccuracy').textContent = '95%+';
+            } else {
+                const model = availableModels.find(m => m.key === selectedValue);
+                if (model) {
+                    document.getElementById('selectedModel').textContent = model.name;
+                    document.getElementById('expectedAccuracy').textContent = (model.avg_r2_score * 100).toFixed(1) + '%';
+                }
+            }
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+            document.getElementById(tabName + 'Tab').style.display = 'block';
+            
+            // Update predict button text and show/hide comprehensive actions
+            const predictBtn = document.getElementById('predictBtn');
+            const comprehensiveActions = document.getElementById('comprehensiveActions');
+            
+            if (tabName === 'batch') {
+                predictBtn.innerHTML = '<i class="fas fa-magic"></i> Get Batch Predictions';
+                predictBtn.style.display = 'block';
+                comprehensiveActions.style.display = 'none';
+            } else if (tabName === 'comprehensive') {
+                predictBtn.style.display = 'none';
+                comprehensiveActions.style.display = 'block';
+            } else {
+                predictBtn.innerHTML = '<i class="fas fa-magic"></i> Get Instant Prediction';
+                predictBtn.style.display = 'block';
+                comprehensiveActions.style.display = 'none';
+            }
+        }
+
+        function handleFileSelection(event) {
+            const file = event.target.files[0];
+            if (file) {
+                displayFileInfo(file);
+                currentFile = file;
+            }
+        }
+
+        function handleBatchFileSelection(event) {
+            const file = event.target.files[0];
+            if (file) {
+                currentFile = file;
+                showModal('Batch File Selected', `Selected file: ${file.name} (${formatFileSize(file.size)})`);
+            }
+        }
+
+        function handleComprehensiveFileSelection(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (isValidFile(file)) {
+                    displayComprehensiveFileInfo(file);
+                    comprehensiveFile = file;
+                } else {
+                    showModal('Invalid File', 'Please upload an Excel (.xlsx, .xls) or CSV (.csv) file.');
+                }
+            }
+        }
+
+        function displayComprehensiveFileInfo(file) {
+            document.getElementById('comprehensiveFileName').textContent = file.name;
+            document.getElementById('comprehensiveFileSize').textContent = formatFileSize(file.size);
+            document.getElementById('comprehensiveFileInfo').style.display = 'block';
+        }
+
+        function clearComprehensiveFile() {
+            comprehensiveFile = null;
+            document.getElementById('comprehensiveFileInfo').style.display = 'none';
+            document.getElementById('comprehensiveFileInput').value = '';
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drag-over');
+            
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (isValidFile(file)) {
+                    displayFileInfo(file);
+                    currentFile = file;
+                    document.getElementById('fileInput').files = files;
+                } else {
+                    showModal('Invalid File', 'Please upload an Excel (.xlsx, .xls) or CSV (.csv) file.');
+                }
+            }
+        }
+
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('drag-over');
+        }
+
+        function isValidFile(file) {
+            const validTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                              'application/vnd.ms-excel', 'text/csv'];
+            return validTypes.includes(file.type) || 
+                   file.name.toLowerCase().endsWith('.xlsx') ||
+                   file.name.toLowerCase().endsWith('.xls') ||
+                   file.name.toLowerCase().endsWith('.csv');
+        }
+
+        function displayFileInfo(file) {
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = formatFileSize(file.size);
+            document.getElementById('fileInfo').style.display = 'block';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function makePrediction() {
+            const activeTab = document.querySelector('.tab-btn.active').textContent.trim();
+            
+            if (activeTab.includes('File Upload') || activeTab.includes('Batch Upload')) {
+                if (!currentFile) {
+                    showModal('Error', 'Please select a file first.');
+                    return;
+                }
+                await makePredictionFromFile();
+            } else if (activeTab.includes('Manual Input')) {
+                await makePredictionFromManualInput();
+            }
+        }
+
+        async function makePredictionFromFile() {
+            const selectedModel = document.querySelector('input[name="modelChoice"]:checked').value;
+            const isBatch = document.querySelector('.tab-btn.active').textContent.includes('Batch');
+            
+            const formData = new FormData();
+            formData.append('file', currentFile);
+            formData.append('use_ensemble', selectedModel === 'ensemble');
+            if (selectedModel !== 'ensemble') {
+                formData.append('model_name', selectedModel);
+            }
+
+            showLoading('Processing file and making prediction...');
+
+            try {
+                const endpoint = isBatch ? '/api/module2/predict/batch' : '/api/module2/predict';
+                let response;
+                
+                if (isBatch) {
+                    response = await axios.post(endpoint, formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                } else {
+                    // For single file prediction, send the file data
+                    response = await axios.post(endpoint, formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                }
+                
+                hideLoading();
+                lastPredictionResult = response.data.result;
+                displayPredictionResults(lastPredictionResult);
+                
+            } catch (error) {
+                hideLoading();
+                showModal('Error', 'Prediction failed: ' + (error.response?.data?.error || error.message));
+            }
+        }
+
+        async function makePredictionFromManualInput() {
+            const features = {
+                flour: parseFloat(document.getElementById('flour').value) || 50.0,
+                sugar: parseFloat(document.getElementById('sugar').value) || 12.5,
+                yeast: parseFloat(document.getElementById('yeast').value) || 0.5,
+                salt: parseFloat(document.getElementById('salt').value) || 0.8,
+                water_temp: parseFloat(document.getElementById('waterTemp').value) || 25.0,
+                mixer_speed: parseFloat(document.getElementById('mixerSpeed').value) || 120,
+                mixing_temp: parseFloat(document.getElementById('mixingTemp').value) || 38.0,
+                fermentation_temp: parseFloat(document.getElementById('fermentationTemp').value) || 37.0,
+                oven_temp: parseFloat(document.getElementById('ovenTemp').value) || 180.0,
+                oven_humidity: parseFloat(document.getElementById('ovenHumidity').value) || 45.0
+            };
+
+            const selectedModel = document.querySelector('input[name="modelChoice"]:checked').value;
+            
+            showLoading('Making instant prediction...');
+
+            try {
+                const response = await axios.post('/api/module2/predict', {
+                    features: features,
+                    model_name: selectedModel === 'ensemble' ? null : selectedModel,
+                    use_ensemble: selectedModel === 'ensemble'
+                });
+                
+                hideLoading();
+                lastPredictionResult = response.data.result;
+                displayPredictionResults(lastPredictionResult);
+                
+            } catch (error) {
+                hideLoading();
+                showModal('Error', 'Prediction failed: ' + (error.response?.data?.error || error.message));
+            }
+        }
+
+        function displayPredictionResults(result) {
+            document.getElementById('resultsPanel').style.display = 'block';
+            document.getElementById('confidencePanel').style.display = 'block';
+            
+            let resultsHTML = '';
+            
+            if (result.ensemble_predictions) {
+                // Ensemble results
+                resultsHTML = `
+                    <div class="prediction-summary">
+                        <h4><i class="fas fa-layer-group"></i> Ensemble Prediction</h4>
+                        <div class="prediction-values">
+                            <div class="prediction-item">
+                                <span class="prediction-label">Final Weight:</span>
+                                <span class="prediction-value">${result.ensemble_predictions[0]?.toFixed(2) || 'N/A'} kg</span>
+                            </div>
+                            <div class="prediction-item">
+                                <span class="prediction-label">Quality Score:</span>
+                                <span class="prediction-value">${result.ensemble_predictions[1]?.toFixed(1) || 'N/A'}%</span>
+                            </div>
+                        </div>
+                        <div class="models-used">
+                            <span class="models-label">Models used:</span>
+                            <span class="models-count">${result.models_used?.length || 0} models</span>
+                        </div>
+                    </div>
+                `;
+            } else if (result.predictions) {
+                // Single model results
+                resultsHTML = `
+                    <div class="prediction-summary">
+                        <h4><i class="fas fa-brain"></i> ${result.model_display_name || 'Model'} Prediction</h4>
+                        <div class="prediction-values">
+                            <div class="prediction-item">
+                                <span class="prediction-label">Final Weight:</span>
+                                <span class="prediction-value">${result.predictions[0]?.toFixed(2) || 'N/A'} kg</span>
+                            </div>
+                            <div class="prediction-item">
+                                <span class="prediction-label">Quality Score:</span>
+                                <span class="prediction-value">${result.predictions[1]?.toFixed(1) || 'N/A'}%</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('predictionResults').innerHTML = resultsHTML;
+            
+            // Display confidence analysis
+            displayConfidenceAnalysis(result);
+        }
+
+        function displayConfidenceAnalysis(result) {
+            let confidenceHTML = '';
+            
+            if (result.ensemble_confidence) {
+                const avgConfidence = result.ensemble_confidence.reduce((a, b) => a + b, 0) / result.ensemble_confidence.length;
+                confidenceHTML = `
+                    <div class="confidence-summary">
+                        <div class="confidence-score">
+                            <div class="confidence-circle">
+                                <div class="confidence-number">${(avgConfidence * 100).toFixed(0)}%</div>
+                            </div>
+                            <div class="confidence-label">Average Confidence</div>
+                        </div>
+                        <div class="confidence-details">
+                            <div class="confidence-item">
+                                <span>Weight Prediction:</span>
+                                <span>${(result.ensemble_confidence[0] * 100).toFixed(0)}%</span>
+                            </div>
+                            <div class="confidence-item">
+                                <span>Quality Prediction:</span>
+                                <span>${(result.ensemble_confidence[1] * 100).toFixed(0)}%</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (result.confidence_scores) {
+                const avgConfidence = result.confidence_scores.reduce((a, b) => a + b, 0) / result.confidence_scores.length;
+                confidenceHTML = `
+                    <div class="confidence-summary">
+                        <div class="confidence-score">
+                            <div class="confidence-circle">
+                                <div class="confidence-number">${(avgConfidence * 100).toFixed(0)}%</div>
+                            </div>
+                            <div class="confidence-label">Prediction Confidence</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('confidenceAnalysis').innerHTML = confidenceHTML;
+        }
+
+        async function runComprehensiveAnalysis() {
+            if (!comprehensiveFile) {
+                showModal('Error', 'Please select a process data file first.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', comprehensiveFile);
+            formData.append('use_ensemble', true);
+
+            showLoading('Running comprehensive analysis...<br>This may take a few moments.');
+
+            try {
+                const response = await axios.post('/api/module2/comprehensive-analysis', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                
+                hideLoading();
+                
+                if (response.data.success) {
+                    comprehensiveAnalysisResult = response.data;
+                    displayComprehensiveResults(response.data);
+                } else {
+                    showModal('Error', 'Analysis failed: ' + response.data.error);
+                }
+                
+            } catch (error) {
+                hideLoading();
+                showModal('Error', 'Comprehensive analysis failed: ' + (error.response?.data?.error || error.message));
+            }
+        }
+
+                 function displayComprehensiveResults(result) {
+             // Show comprehensive results panels
+             document.getElementById('comprehensiveResultsPanel').style.display = 'block';
+             document.getElementById('anomalyPanel').style.display = 'block';
+             document.getElementById('qualityPanel').style.display = 'block';
+
+             // Get the report data (handle both direct result and nested report structure)
+             const report = result.report || result;
+             
+             // Display main results
+             const predictions = report.predictions?.summary || {};
+             const anomalies = report.anomaly_analysis?.summary || {};
+             const quality = report.quality_assessment || {};
+
+            let resultsHTML = `
+                <div class="comprehensive-summary">
+                    <div class="summary-header">
+                        <h4><i class="fas fa-chart-area"></i> Analysis Summary</h4>
+                                                 <div class="summary-metadata">
+                             <span class="metadata-item">
+                                 <i class="fas fa-calendar"></i>
+                                 ${new Date(report.report_metadata?.generated_at).toLocaleString()}
+                             </span>
+                             <span class="metadata-item">
+                                 <i class="fas fa-file"></i>
+                                 ${report.report_metadata?.source_file || 'Unknown'}
+                             </span>
+                         </div>
+                    </div>
+
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <div class="summary-icon"><i class="fas fa-weight-hanging"></i></div>
+                            <div class="summary-content">
+                                <div class="summary-title">Final Weight</div>
+                                <div class="summary-value">${predictions.final_weight?.mean?.toFixed(2) || 'N/A'} ± ${predictions.final_weight?.std?.toFixed(2) || 'N/A'} kg</div>
+                                <div class="summary-range">Range: ${predictions.final_weight?.min?.toFixed(2) || 'N/A'} - ${predictions.final_weight?.max?.toFixed(2) || 'N/A'} kg</div>
+                            </div>
+                        </div>
+
+                        <div class="summary-card">
+                            <div class="summary-icon"><i class="fas fa-star"></i></div>
+                            <div class="summary-content">
+                                <div class="summary-title">Quality Score</div>
+                                <div class="summary-value">${predictions.quality_score?.mean?.toFixed(1) || 'N/A'} ± ${predictions.quality_score?.std?.toFixed(1) || 'N/A'}%</div>
+                                <div class="summary-range">Range: ${predictions.quality_score?.min?.toFixed(1) || 'N/A'} - ${predictions.quality_score?.max?.toFixed(1) || 'N/A'}%</div>
+                            </div>
+                        </div>
+
+                                                 <div class="summary-card">
+                             <div class="summary-icon"><i class="fas fa-database"></i></div>
+                             <div class="summary-content">
+                                 <div class="summary-title">Data Processed</div>
+                                 <div class="summary-value">${report.data_summary?.total_samples || 'N/A'} samples</div>
+                                 <div class="summary-range">${report.data_summary?.total_features || 'N/A'} features extracted</div>
+                             </div>
+                         </div>
+
+                         <div class="summary-card">
+                             <div class="summary-icon"><i class="fas fa-brain"></i></div>
+                             <div class="summary-content">
+                                 <div class="summary-title">Models Used</div>
+                                 <div class="summary-value">${report.report_metadata?.models_used?.length || 'N/A'} models</div>
+                                 <div class="summary-range">Ensemble prediction</div>
+                             </div>
+                         </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('comprehensiveResults').innerHTML = resultsHTML;
+
+                         // Display anomaly results
+             displayAnomalyResults(report.anomaly_analysis);
+
+             // Display quality results
+             displayQualityResults(report.quality_assessment);
+        }
+
+        function displayAnomalyResults(anomalyData) {
+            const summary = anomalyData?.summary || {};
+            
+            let anomalyHTML = `
+                <div class="anomaly-summary">
+                    <div class="anomaly-stats">
+                        <div class="anomaly-stat">
+                            <div class="stat-number ${summary.total_process_anomalies > 0 ? 'warning' : 'success'}">${summary.total_process_anomalies || 0}</div>
+                            <div class="stat-label">Process Anomalies</div>
+                        </div>
+                        <div class="anomaly-stat">
+                            <div class="stat-number ${summary.total_prediction_anomalies > 0 ? 'warning' : 'success'}">${summary.total_prediction_anomalies || 0}</div>
+                            <div class="stat-label">Prediction Anomalies</div>
+                        </div>
+                        <div class="anomaly-stat">
+                            <div class="stat-number ${summary.total_quality_warnings > 0 ? 'warning' : 'success'}">${summary.total_quality_warnings || 0}</div>
+                            <div class="stat-label">Quality Warnings</div>
+                        </div>
+                        <div class="anomaly-stat">
+                            <div class="stat-number ${summary.total_critical_issues > 0 ? 'error' : 'success'}">${summary.total_critical_issues || 0}</div>
+                            <div class="stat-label">Critical Issues</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('anomalyResults').innerHTML = anomalyHTML;
+        }
+
+        function displayQualityResults(qualityData) {
+            const overallScore = qualityData?.overall_quality_score || 0;
+            const riskLevel = qualityData?.risk_level || 'UNKNOWN';
+            const confidenceLevel = qualityData?.confidence_level || 'UNKNOWN';
+
+            let qualityHTML = `
+                <div class="quality-summary">
+                    <div class="quality-score-circle">
+                        <div class="score-circle ${getRiskClass(riskLevel)}">
+                            <div class="score-number">${overallScore.toFixed(0)}</div>
+                            <div class="score-label">Overall Score</div>
+                        </div>
+                    </div>
+                    <div class="quality-details">
+                        <div class="quality-item">
+                            <span class="quality-label">Risk Level:</span>
+                            <span class="quality-value risk-${riskLevel.toLowerCase()}">${riskLevel}</span>
+                        </div>
+                        <div class="quality-item">
+                            <span class="quality-label">Confidence:</span>
+                            <span class="quality-value">${confidenceLevel}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('qualityResults').innerHTML = qualityHTML;
+        }
+
+        function getRiskClass(riskLevel) {
+            switch(riskLevel.toLowerCase()) {
+                case 'low': return 'success';
+                case 'medium': return 'warning';
+                case 'high': return 'error';
+                default: return 'secondary';
+            }
+        }
+
+        async function refreshModels() {
+            await loadModels();
+            showModal('Success', 'Models refreshed successfully!');
+        }
+
+        function exportPredictions() {
+            if (!lastPredictionResult) {
+                showModal('Error', 'No predictions to export.');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(lastPredictionResult, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `module2_predictions_${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showModal('Success', 'Predictions exported successfully!');
+        }
+
+        function showModal(title, content) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-body').innerHTML = `<p>${content}</p>`;
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        function downloadComprehensiveReport() {
+            if (!comprehensiveAnalysisResult) {
+                showModal('Error', 'No comprehensive analysis results to download.');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(comprehensiveAnalysisResult, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `comprehensive_analysis_${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showModal('Success', 'Comprehensive analysis report downloaded successfully!');
+        }
+
+                 function viewAnalysisGraphs() {
+             if (!comprehensiveAnalysisResult || !comprehensiveAnalysisResult.report || !comprehensiveAnalysisResult.report.graphs) {
+                 showModal('Error', 'No analysis graphs available.');
+                 return;
+             }
+
+             const graphs = comprehensiveAnalysisResult.report.graphs;
+             
+             // Store the graph data in localStorage for the graphs page
+             localStorage.setItem('comprehensiveAnalysisResult', JSON.stringify(comprehensiveAnalysisResult));
+             
+             // Navigate to the graphs page
+             window.open('/graphs', '_blank');
+         }
+
+         function loadReportFile() {
+             // Create a file input for JSON files
+             const input = document.createElement('input');
+             input.type = 'file';
+             input.accept = '.json';
+             input.onchange = async function(e) {
+                 const file = e.target.files[0];
+                 if (file) {
+                     await loadReportFromFile(file);
+                 }
+             };
+             input.click();
+         }
+
+         async function loadReportFromFile(file) {
+             const formData = new FormData();
+             formData.append('file', file);
+
+             showLoading('Loading report file...');
+
+             try {
+                 const response = await axios.post('/api/module2/load-report', formData, {
+                     headers: { 'Content-Type': 'multipart/form-data' }
+                 });
+                 
+                 hideLoading();
+                 
+                 if (response.data.success) {
+                     comprehensiveAnalysisResult = response.data;
+                     displayComprehensiveResults(response.data);
+                     showModal('Success', 'Report loaded successfully!');
+                 } else {
+                     showModal('Error', 'Failed to load report: ' + response.data.error);
+                 }
+                 
+             } catch (error) {
+                 hideLoading();
+                 showModal('Error', 'Failed to load report: ' + (error.response?.data?.error || error.message));
+             }
+         }
+
+        
+
+        function showLoading(text = 'Processing...') {
+            document.getElementById('loadingText').innerHTML = text;
+            document.getElementById('loading').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
