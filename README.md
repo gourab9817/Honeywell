@@ -82,6 +82,26 @@ jsonschema==4.19.0
 loguru==0.7.2
 ```
 
+## How to Run 
+```
+git clone - https://github.com/gourab9817/Honeywell
+
+cd Honeywell
+
+python -m venv venv 
+
+.\venv\Scripts\activate
+
+pip install - r requirements.txt
+
+python main.py
+
+select 3
+
+
+
+
+```
 ---
 
 ## 📁 Project Structure
