@@ -606,22 +606,8 @@ test_graph_generation.py     # Visualization testing
 
 ---
 
-## 📞 Support & Documentation
 
-### **Technical Support**
-- **Documentation**: Complete API and user documentation
-- **Code Comments**: Comprehensive inline documentation
-- **Error Handling**: Graceful error recovery and user feedback
-- **Logging**: Detailed system logging with Loguru
 
-### **Future Enhancements**
-1. **Cloud Deployment**: AWS/Azure/GCP integration
-2. **Real-time Data Streams**: IoT sensor integration
-3. **Advanced Analytics**: Predictive maintenance features
-4. **Mobile Application**: Native mobile app development
-5. **Enterprise Integration**: ERP/MES system connectivity
-
----
 
 ## 📄 License & Acknowledgments
 
@@ -636,6 +622,5 @@ This project is proprietary and confidential. Created specifically for the **Hon
 
 ---
 
-**🎯 Made with ❤️ for Honeywell Hackathon - Demonstrating Advanced AI/ML for Industrial Process Optimization**
+**🎯 Made with ❤️by (Gourab)(https://github.com/gourab9817) for Honeywell Hackathon - Demonstrating Advanced AI/ML for Industrial Process Optimization**
 
-*This system showcases cutting-edge artificial intelligence and machine learning techniques applied to real-world industrial challenges in the Food & Beverage manufacturing sector, delivering measurable business value through predictive analytics and intelligent automation.*
