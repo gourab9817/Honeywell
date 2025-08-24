@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>F&B Anomaly Detection System</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style_v2.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
@@ -14,7 +15,7 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-brand">
-                <span class="brand-icon">🏭</span>
+                <i class="fas fa-industry brand-icon"></i>
                 <span class="brand-text">F&B Anomaly Detection</span>
             </div>
             <ul class="nav-menu">
@@ -33,9 +34,11 @@
             <p class="hero-subtitle">Real-time anomaly detection for food & beverage manufacturing</p>
             <div class="hero-buttons">
                 <button class="btn btn-primary" onclick="window.location.href='/dashboard'">
+                    <i class="fas fa-chart-line"></i>
                     View Dashboard
                 </button>
                 <button class="btn btn-secondary" onclick="uploadData()">
+                    <i class="fas fa-upload"></i>
                     Upload Data
                 </button>
             </div>
@@ -51,22 +54,30 @@
             <h2 class="section-title">System Status</h2>
             <div class="status-grid">
                 <div class="status-card">
-                    <div class="status-icon operational">✓</div>
+                    <div class="status-icon operational">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
                     <h3>System Status</h3>
                     <p id="system-status">Operational</p>
                 </div>
                 <div class="status-card">
-                    <div class="status-icon">📊</div>
+                    <div class="status-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
                     <h3>Models Loaded</h3>
                     <p id="models-status">Ready</p>
                 </div>
                 <div class="status-card">
-                    <div class="status-icon">📈</div>
+                    <div class="status-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
                     <h3>Accuracy</h3>
                     <p id="accuracy-status">92.5%</p>
                 </div>
                 <div class="status-card">
-                    <div class="status-icon">⚡</div>
+                    <div class="status-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
                     <h3>Response Time</h3>
                     <p id="response-time">< 100ms</p>
                 </div>
@@ -80,22 +91,30 @@
             <h2 class="section-title">Key Features</h2>
             <div class="features-grid">
                 <div class="feature-card">
-                    <div class="feature-icon">🔍</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
                     <h3>Real-time Detection</h3>
                     <p>Monitor process parameters in real-time and detect anomalies instantly</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🤖</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
                     <h3>AI-Powered Predictions</h3>
                     <p>Advanced machine learning models predict quality issues before they occur</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">📊</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
                     <h3>Comprehensive Analytics</h3>
                     <p>Detailed insights into process performance and quality metrics</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">⚠️</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
                     <h3>Smart Alerts</h3>
                     <p>Intelligent alert system with actionable recommendations</p>
                 </div>
@@ -109,24 +128,36 @@
             <h2 class="section-title">Quick Actions</h2>
             <div class="action-cards">
                 <div class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-upload"></i>
+                    </div>
                     <h3>Upload Process Data</h3>
                     <p>Upload your Excel file containing process parameters</p>
                     <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none">
                     <button class="btn btn-outline" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-folder-open"></i>
                         Choose File
                     </button>
                 </div>
                 <div class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
                     <h3>Train Model</h3>
                     <p>Retrain the model with new data for better accuracy</p>
                     <button class="btn btn-outline" onclick="trainModel()">
+                        <i class="fas fa-play"></i>
                         Start Training
                     </button>
                 </div>
                 <div class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
                     <h3>Export Report</h3>
                     <p>Generate comprehensive analysis report</p>
                     <button class="btn btn-outline" onclick="exportReport()">
+                        <i class="fas fa-file-export"></i>
                         Generate Report
                     </button>
                 </div>
@@ -139,15 +170,19 @@
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
             <h2 id="modal-title">Notification</h2>
-            <p id="modal-message">Message goes here</p>
-            <button class="btn btn-primary" onclick="closeModal()">OK</button>
+            <div id="modal-body">
+                <p id="modal-message">Message goes here</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="closeModal()">OK</button>
+            </div>
         </div>
     </div>
 
     <!-- Loading Overlay -->
     <div id="loading" class="loading-overlay">
         <div class="spinner"></div>
-        <p>Processing...</p>
+        <p id="loadingText">Processing...</p>
     </div>
 
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
@@ -222,7 +257,7 @@
             const formData = new FormData();
             formData.append('file', file);
 
-            showLoading();
+            showLoading('Uploading and processing data...');
 
             try {
                 const response = await axios.post('/api/upload', formData, {
@@ -232,7 +267,7 @@
                 });
 
                 hideLoading();
-                showModal('Success', `File uploaded successfully. Processed ${response.data.rows_processed} rows.`);
+                showModal('Success', `File uploaded successfully. Processed ${response.data.data_summary.process_rows} rows.`);
             } catch (error) {
                 hideLoading();
                 showModal('Error', 'Failed to upload file: ' + error.response?.data?.error);
@@ -240,7 +275,7 @@
         }
 
         async function trainModel() {
-            showLoading();
+            showLoading('Training models...');
             
             try {
                 const response = await axios.post('/api/train');
@@ -284,9 +319,13 @@
             }
         }
 
-        function showModal(title, message) {
+        function uploadData() {
+            document.getElementById('fileInput').click();
+        }
+
+        function showModal(title, content) {
             document.getElementById('modal-title').textContent = title;
-            document.getElementById('modal-message').textContent = message;
+            document.getElementById('modal-body').innerHTML = `<p>${content}</p>`;
             document.getElementById('modal').style.display = 'block';
         }
 
@@ -294,7 +333,8 @@
             document.getElementById('modal').style.display = 'none';
         }
 
-        function showLoading() {
+        function showLoading(text = 'Processing...') {
+            document.getElementById('loadingText').textContent = text;
             document.getElementById('loading').style.display = 'flex';
         }
 

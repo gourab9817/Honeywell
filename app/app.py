@@ -54,10 +54,225 @@ predictor = Predictor()
 current_data = None
 current_features = None
 training_status = {}
+dashboard_data = {
+    'last_training': None,
+    'current_batch': None,
+    'quality_score': None,
+    'predicted_weight': None,
+    'anomaly_risk': 'Low',
+    'process_parameters': {},
+    'alerts': [],
+    'batch_summary': {},
+    'training_report': {}
+}
 
 # Create upload directory
 upload_dir = Path(FLASK_CONFIG['UPLOAD_FOLDER'])
 upload_dir.mkdir(parents=True, exist_ok=True)
+
+# Create dashboard data directory
+dashboard_data_dir = Path('data/dashboard')
+dashboard_data_dir.mkdir(parents=True, exist_ok=True)
+
+def save_dashboard_data():
+    """Save dashboard data to JSON file."""
+    try:
+        dashboard_file = dashboard_data_dir / 'dashboard_data.json'
+        with open(dashboard_file, 'w') as f:
+            json.dump(dashboard_data, f, indent=2, default=str)
+    except Exception as e:
+        print(f"Error saving dashboard data: {e}")
+
+def load_dashboard_data():
+    """Load dashboard data from JSON file."""
+    try:
+        dashboard_file = dashboard_data_dir / 'dashboard_data.json'
+        if dashboard_file.exists():
+            with open(dashboard_file, 'r') as f:
+                data = json.load(f)
+                global dashboard_data
+                dashboard_data.update(data)
+    except Exception as e:
+        print(f"Error loading dashboard data: {e}")
+
+def load_latest_training_report():
+    """Load the latest training report from the models directory."""
+    try:
+        models_dir = Path('data/models')
+        if not models_dir.exists():
+            return None
+        
+        # Find the latest training results file
+        result_files = list(models_dir.glob('*_results_*.json'))
+        if not result_files:
+            return None
+        
+        # Get the most recent file
+        latest_file = max(result_files, key=lambda x: x.stat().st_mtime)
+        
+        with open(latest_file, 'r') as f:
+            report_data = json.load(f)
+        
+        return report_data
+    except Exception as e:
+        print(f"Error loading training report: {e}")
+        return None
+
+def update_dashboard_metrics(training_results=None, prediction_results=None):
+    """Update dashboard metrics with new data."""
+    global dashboard_data
+    
+    # Load latest training report
+    training_report = load_latest_training_report()
+    
+    # Initialize with default values only if we have meaningful data
+    dashboard_data = {
+        'quality_score': None,
+        'predicted_weight': None,
+        'anomaly_risk': None,
+        'current_batch': None,
+        'process_parameters': {},
+        'batch_summary': {},
+        'training_report': {},
+        'last_training': {}
+    }
+    
+    if training_report:
+        # Extract key metrics from training report
+        if 'training_status' in training_report and 'results' in training_report['training_status']:
+            results = training_report['training_status']['results']
+            
+            # Get best model performance
+            best_model = results.get('best_model', 'Unknown')
+            best_score = results.get('best_score', 0)
+            
+            # Get business impact metrics
+            business_impact = results.get('business_impact', {})
+            
+            # Only add training data if we have meaningful values
+            if best_model != 'Unknown' and best_score != 0:
+                dashboard_data['last_training'] = {
+                    'timestamp': training_report.get('timestamp', ''),
+                    'best_model': best_model,
+                    'best_score': best_score,
+                    'model_scores': results.get('model_scores', {}),
+                    'business_impact': business_impact,
+                    'feature_importance': results.get('feature_importance', {})
+                }
+                
+                # Update quality score from business impact only if meaningful
+                if business_impact and business_impact.get('quality_accuracy', 0) > 0:
+                    quality_accuracy = business_impact.get('quality_accuracy', 0) * 100
+                    if quality_accuracy > 0:
+                        dashboard_data['quality_score'] = round(quality_accuracy, 1)
+                    
+                    # Calculate predicted weight from weight accuracy only if meaningful
+                    weight_accuracy = business_impact.get('weight_accuracy', 0)
+                    if weight_accuracy > 0:
+                        # Assuming ideal weight is around 45kg
+                        dashboard_data['predicted_weight'] = round(45 * weight_accuracy, 1)
+                    
+                    # Set anomaly risk based on model performance only if meaningful
+                    if best_score > 0:
+                        if best_score > 0.8:
+                            dashboard_data['anomaly_risk'] = 'Low'
+                        elif best_score > 0.6:
+                            dashboard_data['anomaly_risk'] = 'Medium'
+                        else:
+                            dashboard_data['anomaly_risk'] = 'High'
+    
+    if training_results:
+        # Only update if we have meaningful training results
+        if training_results.get('best_model') and training_results.get('best_score', 0) > 0:
+            dashboard_data['last_training'] = {
+                'timestamp': datetime.now().isoformat(),
+                'best_model': training_results.get('best_model', 'Unknown'),
+                'best_score': training_results.get('best_score', 0),
+                'model_scores': training_results.get('model_scores', {})
+            }
+    
+    if prediction_results:
+        # Only update if we have meaningful prediction results
+        quality = prediction_results.get('quality', 0)
+        weight = prediction_results.get('weight', 0)
+        anomaly_risk = prediction_results.get('anomaly_risk', 'Unknown')
+        
+        if quality > 0:
+            dashboard_data['quality_score'] = quality
+        if weight > 0:
+            dashboard_data['predicted_weight'] = weight
+        if anomaly_risk != 'Unknown':
+            dashboard_data['anomaly_risk'] = anomaly_risk
+    
+    # Update process parameters if we have current data
+    if current_data and current_data['process_data'] is not None:
+        try:
+            latest_data = current_data['process_data'].iloc[-1]
+            dashboard_data['process_parameters'] = {}
+            
+            for param, config in PROCESS_PARAMS.items():
+                if param in latest_data:
+                    current_val = float(latest_data[param])
+                    ideal = config['ideal']
+                    deviation = abs(current_val - ideal)
+                    
+                    # Only include if we have meaningful values
+                    if current_val > 0:
+                        status = 'normal'
+                        if deviation > config['tolerance'] * 2:
+                            status = 'critical'
+                        elif deviation > config['tolerance']:
+                            status = 'warning'
+                        
+                        dashboard_data['process_parameters'][param] = {
+                            'current': round(current_val, 2),
+                            'ideal': ideal,
+                            'tolerance': config['tolerance'],
+                            'unit': config['unit'],
+                            'status': status,
+                            'deviation_percentage': round((deviation / ideal) * 100, 1)
+                        }
+        except Exception as e:
+            print(f"Error updating process parameters: {e}")
+    
+    # Update batch summary if we have quality data
+    if current_data and current_data['quality_data'] is not None:
+        try:
+            quality_data = current_data['quality_data']
+            total_batches = len(quality_data)
+            
+            if total_batches > 0:
+                pass_count = sum(1 for _, row in quality_data.iterrows() 
+                               if QUALITY_THRESHOLDS['weight']['min'] <= row['Final_Weight'] <= QUALITY_THRESHOLDS['weight']['max'] 
+                               and row['Quality_Score'] >= QUALITY_THRESHOLDS['quality_score']['min'])
+                
+                pass_rate = round((pass_count / total_batches) * 100, 2) if total_batches > 0 else 0
+                
+                # Only include if we have meaningful batch data
+                if total_batches > 0 and pass_rate > 0:
+                    dashboard_data['batch_summary'] = {
+                        'total_batches': total_batches,
+                        'pass_rate': pass_rate,
+                        'batches': quality_data.tail(5).to_dict('records')
+                    }
+        except Exception as e:
+            print(f"Error updating batch summary: {e}")
+    
+    # Add training report data to dashboard only if meaningful
+    if training_report:
+        quality_report = training_report.get('quality_report', {})
+        outlier_report = training_report.get('outlier_report', {})
+        system_status = training_report.get('system_status', {})
+        
+        # Only include if we have meaningful data
+        if quality_report or outlier_report or system_status:
+            dashboard_data['training_report'] = {
+                'quality_report': quality_report,
+                'outlier_report': outlier_report,
+                'system_status': system_status
+            }
+    
+    save_dashboard_data()
 
 def allowed_file(filename):
     """Check if file extension is allowed."""
@@ -132,6 +347,9 @@ def upload_file():
             
             # Save features
             feature_engineer.save_features(selected_features_df)
+            
+            # Update dashboard with new data
+            update_dashboard_metrics()
             
             # Get data quality report
             quality_report = data_processor.get_quality_report()
@@ -208,6 +426,9 @@ def train_models():
             'saved_files': saved_files
         }
         
+        # Update dashboard with training results
+        update_dashboard_metrics(training_results=training_results)
+        
         return jsonify({
             'success': True,
             'message': 'Models trained successfully',
@@ -237,6 +458,9 @@ def make_prediction():
         
         # Make prediction
         result = predictor.predict_batch(batch_features)
+        
+        # Update dashboard with prediction results
+        update_dashboard_metrics(prediction_results=result)
         
         return jsonify({
             'success': True,
@@ -274,8 +498,13 @@ def realtime_prediction():
 def get_process_parameters():
     """Get current process parameters."""
     try:
-        if current_data is None or current_data['process_data'] is None:
-            # Return simulated data
+        # Load latest dashboard data
+        load_dashboard_data()
+        
+        if dashboard_data['process_parameters']:
+            return jsonify(dashboard_data['process_parameters'])
+        else:
+            # Return simulated data if no real data available
             simulated_data = {}
             for param, config in PROCESS_PARAMS.items():
                 ideal = config['ideal']
@@ -288,16 +517,16 @@ def get_process_parameters():
                 elif deviation > config['tolerance']:
                     status = 'warning'
                 
-            simulated_data[param] = {
+                simulated_data[param] = {
                     'current': round(current_val, 2),
-                'ideal': ideal,
-                'tolerance': config['tolerance'],
-                'unit': config['unit'],
+                    'ideal': ideal,
+                    'tolerance': config['tolerance'],
+                    'unit': config['unit'],
                     'status': status,
                     'deviation_percentage': round((deviation / ideal) * 100, 1)
-            }
+                }
             
-        return jsonify(simulated_data)
+            return jsonify(simulated_data)
     
     # Get latest values from actual data
         process_data = current_data['process_data']
@@ -409,6 +638,18 @@ def get_alerts():
 def get_batch_summary():
     """Get summary of all batches."""
     try:
+        # Load latest dashboard data
+        load_dashboard_data()
+        
+        if dashboard_data['batch_summary']:
+            return jsonify({
+                'success': True,
+                'batches': dashboard_data['batch_summary'].get('batches', []),
+                'total_batches': dashboard_data['batch_summary'].get('total_batches', 0),
+                'pass_rate': dashboard_data['batch_summary'].get('pass_rate', 0)
+            })
+        
+        # Fallback to current data if no dashboard data
         if current_data is None or current_data['quality_data'] is None:
             return jsonify({'error': 'No quality data available'}), 404
     
@@ -510,6 +751,188 @@ def export_features():
     except Exception as e:
         return jsonify({'error': f'Error exporting features: {str(e)}'}), 500
 
+@app.route('/api/dashboard/metrics')
+def get_dashboard_metrics():
+    """Get current dashboard metrics."""
+    try:
+        # Load latest dashboard data
+        load_dashboard_data()
+        
+        # Only include meaningful data - filter out null/zero/undefined values
+        metrics = {}
+        
+        # Only include quality_score if it's meaningful
+        quality_score = dashboard_data.get('quality_score')
+        if quality_score is not None and quality_score > 0:
+            metrics['quality_score'] = quality_score
+        
+        # Only include predicted_weight if it's meaningful
+        predicted_weight = dashboard_data.get('predicted_weight')
+        if predicted_weight is not None and predicted_weight > 0:
+            metrics['predicted_weight'] = predicted_weight
+        
+        # Only include anomaly_risk if it's meaningful
+        anomaly_risk = dashboard_data.get('anomaly_risk')
+        if anomaly_risk is not None and anomaly_risk != 'Unknown':
+            metrics['anomaly_risk'] = anomaly_risk
+        
+        # Only include current_batch if it's meaningful
+        current_batch = dashboard_data.get('current_batch')
+        if current_batch is not None and current_batch > 0:
+            metrics['current_batch'] = current_batch
+        
+        # Only include last_training if it has meaningful data
+        last_training = dashboard_data.get('last_training', {})
+        if (last_training and 
+            last_training.get('best_model') and 
+            last_training.get('best_model') != 'Unknown' and
+            last_training.get('best_score', 0) > 0):
+            metrics['last_training'] = last_training
+        
+        # Only include system_status if predictor is available
+        try:
+            if predictor:
+                system_status = predictor.get_system_status()
+                if system_status and any(system_status.values()):
+                    metrics['system_status'] = system_status
+        except:
+            pass  # Skip if predictor is not available
+        
+        return jsonify({
+            'success': True,
+            'metrics': metrics
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Error getting dashboard metrics: {str(e)}'}), 500
+
+@app.route('/api/dashboard/quality-gauge')
+def get_quality_gauge_data():
+    """Get quality gauge data for dashboard."""
+    try:
+        # Load latest dashboard data
+        load_dashboard_data()
+        
+        quality_score = dashboard_data.get('quality_score', 87)
+        
+        return jsonify({
+            'success': True,
+            'quality_score': quality_score,
+            'gauge_data': [quality_score, 100 - quality_score]
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Error getting quality gauge data: {str(e)}'}), 500
+
+@app.route('/api/dashboard/training-analysis')
+def get_training_analysis():
+    """Get comprehensive training analysis data."""
+    try:
+        # Load latest dashboard data
+        load_dashboard_data()
+        
+        training_report = dashboard_data.get('training_report', {})
+        last_training = dashboard_data.get('last_training', {})
+        
+        # Only include meaningful data
+        analysis_data = {}
+        
+        # Model performance - only if we have meaningful data
+        if (last_training and 
+            last_training.get('best_model') and 
+            last_training.get('best_model') != 'Unknown' and
+            last_training.get('best_score', 0) > 0):
+            
+            analysis_data['model_performance'] = {
+                'best_model': last_training.get('best_model'),
+                'best_score': last_training.get('best_score'),
+                'model_scores': last_training.get('model_scores', {})
+            }
+        
+        # Business impact - only if we have meaningful data
+        business_impact = last_training.get('business_impact', {})
+        if business_impact and any(v != 0 for v in business_impact.values() if isinstance(v, (int, float))):
+            analysis_data['business_impact'] = business_impact
+        
+        # Data quality - only if we have meaningful data
+        quality_report = training_report.get('quality_report', {})
+        outlier_report = training_report.get('outlier_report', {})
+        
+        if quality_report or outlier_report:
+            data_quality = {}
+            
+            data_overview = quality_report.get('data_overview', {})
+            if data_overview and any(v != 0 for v in data_overview.values() if isinstance(v, (int, float))):
+                data_quality['data_overview'] = data_overview
+            
+            data_quality_score = quality_report.get('data_quality_score', 0)
+            if data_quality_score > 0:
+                data_quality['data_quality_score'] = data_quality_score
+            
+            outlier_percentage = outlier_report.get('outlier_percentages', {}).get('total', 0)
+            if outlier_percentage > 0:
+                data_quality['outlier_percentage'] = outlier_percentage
+            
+            if data_quality:
+                analysis_data['data_quality'] = data_quality
+        
+        # Feature importance - only if we have meaningful data
+        feature_importance = last_training.get('feature_importance', {})
+        if feature_importance and any(v > 0 for v in feature_importance.values() if isinstance(v, (int, float))):
+            analysis_data['feature_importance'] = feature_importance
+        
+        # System status - only if we have meaningful data
+        system_status = training_report.get('system_status', {})
+        if system_status and any(system_status.values()):
+            analysis_data['system_status'] = system_status
+        
+        return jsonify({
+            'success': True,
+            'analysis': analysis_data
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Error getting training analysis: {str(e)}'}), 500
+
+@app.route('/api/dashboard/model-comparison')
+def get_model_comparison():
+    """Get model comparison data for charts."""
+    try:
+        # Load latest dashboard data
+        load_dashboard_data()
+        
+        last_training = dashboard_data.get('last_training', {})
+        model_scores = last_training.get('model_scores', {})
+        
+        # Prepare data for charts
+        models = []
+        scores = []
+        colors = []
+        
+        for model_name, model_data in model_scores.items():
+            if 'test_metrics' in model_data and 'overall' in model_data['test_metrics']:
+                avg_r2 = model_data['test_metrics']['overall'].get('avg_r2', 0)
+                models.append(model_name.replace('_', ' ').title())
+                scores.append(round(avg_r2 * 100, 1))  # Convert to percentage
+                
+                # Color coding based on performance
+                if avg_r2 > 0.8:
+                    colors.append('#10b981')  # Green
+                elif avg_r2 > 0.6:
+                    colors.append('#f59e0b')  # Orange
+                else:
+                    colors.append('#ef4444')  # Red
+        
+        return jsonify({
+            'success': True,
+            'models': models,
+            'scores': scores,
+            'colors': colors
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Error getting model comparison: {str(e)}'}), 500
+
 @app.route('/api/export/report')
 def export_report():
     """Export comprehensive report."""
@@ -555,6 +978,11 @@ def internal_error(error):
 if __name__ == '__main__':
     print("🚀 Starting F&B Process Anomaly Detection System...")
     print(f"📊 System Status: {predictor.get_system_status()}")
+    
+    # Load existing dashboard data on startup
+    load_dashboard_data()
+    print("📈 Dashboard data loaded from previous sessions")
+    
     print(f"🌐 Dashboard available at: http://{FLASK_CONFIG['HOST']}:{FLASK_CONFIG['PORT']}")
     
     app.run(
