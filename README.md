@@ -33,6 +33,8 @@ The system implements a revolutionary dual-module architecture that addresses di
 - **Best For**: Real-time monitoring, rapid decision making
 - **Models**: Pre-trained ensemble of 7+ ML algorithms
 ![Architecture Diagram](Appflow_fnb.png)
+
+
 ---
 
 ## 📊 Technical Specifications
@@ -81,7 +83,7 @@ requests==2.31.0
 jsonschema==4.19.0
 loguru==0.7.2
 ```
-
+![Technical Architecture Diagram](TechnicalArchitecture.png)
 ## How to Run 
 ```
 git clone - https://github.com/gourab9817/Honeywell
@@ -102,6 +104,7 @@ select 3
 
 
 ```
+![Userflow Diagram](Userflow.png)
 ---
 
 ## 📁 Project Structure
